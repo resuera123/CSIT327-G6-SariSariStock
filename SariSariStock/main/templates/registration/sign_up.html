@@ -1,0 +1,23 @@
+{% extends 'main/base.html' %}
+{% block title %}SariSariStock | Sign Up{% endblock %}
+
+{% load crispy_forms_tags %}
+
+{% block content %} 
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-5">
+            <div class="card shadow-lg p-3 mb-5 bg-body rounded-4 text-dark">
+                <div class="card-body p-4">
+                    <h3 class="text-center mb-4">Sign-up</h3>
+                    <form method="post">
+                    {% csrf_token %} {{form|crispy}}
+                    <p>Have an account? <a href="/login">Login</a></p>
+                    <button type="submit" class="btn btn-success">Register</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,61 @@
+{% extends 'main/base.html' %}
+{% load humanize %}
+{% block title %}SariSariStock | Home Page{% endblock %}
+
+{% block content %}
+<style>
+  html, body {
+    height: 100%;
+    margin: 0;
+  }
+
+  .layout {
+    display: flex;
+    min-height: 100vh;
+  }
+
+  .sidebar {
+    width: 250px;
+    background-color: #212529; 
+    color: white;
+    padding: 1.5rem;
+  }
+
+  .main-content {
+    flex-grow: 1;
+    padding: 2rem;
+  }
+</style>
+
+<!-- SideBar -->
+<div class="layout">
+  <div class="sidebar">
+    <ul class="nav flex-column">
+      <li class="nav-item">
+        <a class="nav-link text-white" href="#"><i class="bi bi-bar-chart-line-fill"></i> Dashboard</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link text-white" href="#"><i class="bi bi-bookmark-fill"></i> Category List</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link text-white" href="#"><i class="bi bi-box-seam-fill"></i> Product Lists</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link text-white" href="#"><i class="bi bi-cart4"></i> POS</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link text-white" href="#"><i class="bi bi-receipt"></i> Sales</a>
+      </li>
+    </ul>
+  </div>
+
+  <!-- Main content -->
+  <div class="main-content text-white">
+    <h1 class="text-center mb-5">Welcome to the Sari-Sari Stock Management System</h1>
+
+    <footer class="bg-dark text-white text-center border-top mt-5 py-3">
+      &copy; 2025 Group8 SariSariStock. All rights reserved.
+    </footer>
+  </div>
+</div>
+{% endblock %}
