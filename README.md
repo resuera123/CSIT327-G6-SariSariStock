@@ -31,7 +31,7 @@ Open a terminal and run (or use terminal in VScode):
 ```
   git clone https://github.com/your_username/SariSariStock.git
 
-  cd SariSariStock
+  cd CSIT327-G6-SariSariStock
 ```
 ### 2.Create and Activate  Virtual Environment:
 ```
@@ -75,6 +75,7 @@ Open a terminal and run (or use terminal in VScode):
 </div>
 
 <hr>
+
 
 
 
