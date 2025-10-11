@@ -11,17 +11,25 @@
     <title>{% block title %}Sari-Sari Store{% endblock %}</title>
 </head>
 <style>
+    .debugBorder{
+        border: solid transparent 1px;
+    }
+
     body {
     font-family: 'Poppins', sans-serif;
-    background-color: #212529;
+    background: rgb(255, 255, 255)
     }
     .nav-item p{
-        color: white;
+        color: black;
+    }
+
+    .navigationBar{
+        background: white;
     }
 </style>
-<body >
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fw-bold" id="nav">
-        <div class="container-fluid">
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark fw-bold" id="nav">
+        <div class="container-fluid navigationBar">
             <div>
                 <ul class="navbar-nav"> 
                     <li class="nav-item">
@@ -32,9 +40,9 @@
             <div>
                 <ul class="navbar-nav"> 
                     {% if user.is_authenticated %}
-                    <span class="navbar-text">Logged in as {{user.first_name}} | </span>
+                    <span class="navbar-text" style="color:#212529">Logged in as {{user.first_name}} | </span>
                     <li class="nav-item">
-                        <a class="nav-link" href="/logout/">Logout &nbsp; <i class="bi bi-box-arrow-in-left"></i></a>
+                        <a class="nav-link" href="/logout/" style="color:#212529">Logout &nbsp; <i class="bi bi-box-arrow-in-left"></i></a>
                     </li>
                     {% else %}
                     &nbsp;
@@ -43,11 +51,11 @@
             </div>
         </div>
     </nav>
-    <div class="container-fluid">
+    <div class="container-fluid debugBorder" style="background: rgb(247, 247, 247);">
         {% block content %}
         {% endblock %}
         {% if request.path == '/login/' %}
-        <footer class="bg-dark text-white text-center border-top mt-5 py-3">
+        <footer class="bg-white text-dark text-center border-top mt-5 py-3">
             &copy; 2025 Group8 SariSariStock. All rights reserved.
         </footer>
         {% endif %}

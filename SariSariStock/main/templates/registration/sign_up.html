@@ -3,7 +3,29 @@
 
 {% load crispy_forms_tags %}
 
-{% block content %} 
+{% block content %}
+<style>
+    .register_button{
+        padding:10px;
+        background: rgb(0, 183, 255);
+        width: 150px;
+        font-weight: bold;
+        color: white;
+        border-radius: 100px;
+        transition: background 0.3s ease;
+    }
+
+    .register_button:hover{
+        background: rgb(0, 117, 163);
+        color: white;
+    }
+
+    .centerContent{
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+</style> 
 <div class="container mt-5">
     <div class="row justify-content-center">
         <div class="col-md-5">
@@ -13,7 +35,9 @@
                     <form method="post">
                     {% csrf_token %} {{form|crispy}}
                     <p>Have an account? <a href="/login">Login</a></p>
-                    <button type="submit" class="btn btn-success">Register</button>
+                    <div class="centerContent">
+                        <button type="submit" class="btn register_button">Register</button>
+                    </div>                    
                     </form>
                 </div>
             </div>
