@@ -42,6 +42,7 @@ Open a terminal and run (or use terminal in VScode):
 ### 3. Install Dependencies
 ```
   cd .\SariSariStock\
+
   pip install -r requirement.txt
 ```
 ### 4. Run the Development Server
@@ -69,6 +70,7 @@ Open a terminal and run (or use terminal in VScode):
 </div>
 
 <hr>
+
 
 
 
