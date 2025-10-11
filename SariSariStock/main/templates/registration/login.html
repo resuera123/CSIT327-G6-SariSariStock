@@ -7,17 +7,40 @@
 {% block content %}
 <style>
     
+
+    .login_button{
+        padding:10px;
+        background: rgb(0, 183, 255);
+        width: 150px;
+        font-weight: bold;
+        color: white;
+        border-radius: 100px;
+        transition: background 0.3s ease;
+    }
+
+    .login_button:hover{
+        background: rgb(0, 117, 163);
+        color: white;
+    }
+
+    .centerContent{
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
 </style>
 <div class="container mt-5 ">
     <div class="row justify-content-center ">
-        <div class="col-md-5">
+        <div class="col-md-5 ">
             <div class="card shadow-lg p-3 mb-5 bg-body rounded-4 text-dark ">
                 <div class="card-body p-4 ">
                     <p class="text-center mb-4 fs-2 ">Login</p>
                     <form method="post">
                     {% csrf_token %} {{form|crispy}}
                     <p>Don't have an account? Create one <a href="/sign-up">Here</a></p>
-                    <button type="submit" class="btn btn-success">Login</button>
+                    <div class="centerContent">
+                        <button type="submit" class="btn login_button">Login</button>
+                    </div>                    
                     </form>
                 </div>
             </div>

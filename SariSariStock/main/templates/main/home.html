@@ -25,35 +25,55 @@
     flex-grow: 1;
     padding: 2rem;
   }
+  .sidebarStyle{
+    background: white;
+  }
+  .sidebarStyle a{
+    color: black;
+    border-radius: 10px;
+    transition: background 0.1s ease;
+  }
+
+  .sidebarStyle a:hover{
+    color: black;
+    background: rgb(187, 187, 187);
+    border-radius: 10px;
+  }
+
+  .sidebarStyle a:focus{
+    color: black;
+    background: rgb(131, 131, 131);
+    border-radius: 10px;
+  }
 </style>
 
 <!-- SideBar -->
 <div class="layout">
-  <div class="sidebar">
+  <div class="sidebar sidebarStyle">
     <ul class="nav flex-column">
       <li class="nav-item">
-        <a class="nav-link text-white" href="#"><i class="bi bi-bar-chart-line-fill"></i> Dashboard</a>
+        <a class="nav-link " href="#"><i class="bi bi-bar-chart-line-fill"></i> Dashboard</a>
       </li>
       <li class="nav-item">
-        <a class="nav-link text-white" href="#"><i class="bi bi-box-seam-fill"></i> Products</a>
+        <a class="nav-link" href="#"><i class="bi bi-box-seam-fill"></i> Products</a>
       </li>
       <li class="nav-item">
-        <a class="nav-link text-white" href="#"><i class="bi bi-clipboard-check-fill"></i> Inventory</a>
+        <a class="nav-link" href="#"><i class="bi bi-clipboard-check-fill"></i> Inventory</a>
       </li>
       <li class="nav-item">
-        <a class="nav-link text-white" href="#"><i class="bi bi-cart4"></i> POS</a>
+        <a class="nav-link" href="#"><i class="bi bi-cart4"></i> POS</a>
       </li>
       <li class="nav-item">
-        <a class="nav-link text-white" href="#"><i class="bi bi-receipt"></i> Sales</a>
+        <a class="nav-link" href="#"><i class="bi bi-receipt"></i> Sales</a>
       </li>
     </ul>
   </div>
 
   <!-- Main content -->
-  <div class="main-content text-white">
+  <div class="main-content text-dark">
     <h1 class="text-center mb-5">Welcome to the Sari-Sari Stock Management System</h1>
 
-    <footer class="bg-dark text-white text-center border-top mt-5 py-3">
+    <footer class="bg-white text-dark text-center border-top mt-5 py-3">
       &copy; 2025 Group8 SariSariStock. All rights reserved.
     </footer>
   </div>
