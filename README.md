@@ -29,7 +29,7 @@ Follow these steps to clone the repository and run the project on your machine.
 
 Open a terminal and run (or use terminal in VScode):
 ```
-  git clone https://github.com/your_username/SariSariStock.git
+  git clone https://github.com/resuera123/CSIT327-G6-SariSariStock.git
 
   cd CSIT327-G6-SariSariStock
 ```
@@ -75,6 +75,7 @@ Open a terminal and run (or use terminal in VScode):
 </div>
 
 <hr>
+
 
 
 
