@@ -41,17 +41,11 @@ Open a terminal and run (or use terminal in VScode):
 ```
 ### 3. Install Dependencies
 ```
-  pip install django-crispy-forms
-  pip install crispy-bootstrap5
-  pip install psycopg2-binary
-```
-### 4. Apply Migrations (If necessary)
-```
-  python manage.py migrate
-```
-### 5. Run the Development Server
-```
   cd .\SariSariStock\
+  pip install -r requirement.txt
+```
+### 4. Run the Development Server
+```
   python manage.py runserver
 ```
 
@@ -75,6 +69,7 @@ Open a terminal and run (or use terminal in VScode):
 </div>
 
 <hr>
+
 
 
 
