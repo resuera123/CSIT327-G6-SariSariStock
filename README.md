@@ -43,7 +43,7 @@ Open a terminal and run (or use terminal in VScode):
 ```
   cd .\SariSariStock\
 
-  pip install -r requirement.txt
+  pip install -r requirements.txt
 ```
 ### 4. Run the Development Server
 ```
@@ -70,6 +70,7 @@ Open a terminal and run (or use terminal in VScode):
 </div>
 
 <hr>
+
 
 
 
