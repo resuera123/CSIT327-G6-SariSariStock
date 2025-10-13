@@ -51,14 +51,20 @@
             </div>
         </div>
     </nav>
-    <div class="container-fluid debugBorder" style="background: rgb(247, 247, 247);">
-        {% block content %}
-        {% endblock %}
-        {% if request.path == '/login/' %}
-        <footer class="bg-white text-dark text-center border-top mt-5 py-3">
-            &copy; 2025 Group8 SariSariStock. All rights reserved.
-        </footer>
+    <div class="d-flex">
+        {% if user.is_authenticated %}
+            {% block navigation %}{% include "main/navigation.html" %}{% endblock %}
         {% endif %}
+        <div class="container-fluid debugBorder" style="background: rgb(247, 247, 247);">
+            {% block content %}
+            {% endblock %}
+            
+            {% if request.path == '/login/' %}
+            <footer class="bg-white text-dark text-center border-top mt-5 py-3">
+                &copy; 2025 Group8 SariSariStock. All rights reserved.
+            </footer>
+            {% endif %}
+        </div>
     </div>
      <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"  integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script> 
 </body>

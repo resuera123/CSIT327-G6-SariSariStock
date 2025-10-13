@@ -23,3 +23,15 @@ def sign_up(request):
 def LogOut(request):
     logout(request)
     return redirect("/login/")
+
+def products(request):
+    return render(request, 'productCatalog/products.html')
+
+def inventory(request):
+    return render(request, 'inventory/inventory.html')
+
+def pos(request):
+    return render(request, 'pos/pos.html')
+
+def sales(request):
+    return render(request, 'sales/sales.html')
