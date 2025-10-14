@@ -5,21 +5,29 @@ from django.utils import timezone
 from unicodedata import category
 
 # Create your models here.
-class Category(models.Model):
-    name = models.TextField(max_length=100)
-    status = models.IntegerField(default=1)
-    date_added = models.DateTimeField(default=timezone.now)
-    date_updated = models.DateTimeField(auto_now=True)
-
-    def __str__(self):
-        return self.name
-    
 class Products(models.Model):
+
+    CATEGORY_CHOICES = (
+        ('food', 'Food'),
+        ('drinks', 'Drinks'),
+        ('toiletries', 'Toiletries'),
+        ('household', 'Household'),
+        ('medicine', 'Medicine'),
+        ('toys', 'Toys'),
+    )
+
+    STATUS_CHOICES = (
+        ('active', 'Active'),
+        ('archive', 'Archive'),
+    )
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='products')
     code = models.CharField(max_length=100)
-    category_id = models.ForeignKey(Category, on_delete=models.CASCADE)
+    categories = models.CharField(max_length=20, choices=CATEGORY_CHOICES)
     name = models.TextField(max_length=100)
     price = models.FloatField(default=0)
-    status = models.IntegerField(default=1)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES)
+    quantity = models.IntegerField(default=0)
     date_added = models.DateTimeField(default=timezone.now)
     date_updated = models.DateTimeField(auto_now=True)
 

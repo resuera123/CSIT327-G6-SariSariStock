@@ -1,0 +1,69 @@
+{% extends 'main/base.html' %}
+{% load humanize %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="mb-0">Add Product</h4>
+        <a href="{% url 'products' %}" class="btn btn-danger">← Back to Products</a>
+    </div>
+
+    <div class="card shadow-sm p-4">
+        <form method="POST" novalidate>
+            {% csrf_token %}
+            {{ form.non_field_errors }}
+            
+            <div class="mb-3">
+                <label for="id_code" class="form-label">Product Code</label>
+                {{ form.code }}
+                {% for error in form.code.errors %}
+                    <div class="text-danger small">{{ error }}</div>
+                {% endfor %}
+            </div>
+
+            <div class="mb-3">
+                <label for="id_categories" class="form-label">Category</label>
+                {{ form.categories }}
+                {% for error in form.categories.errors %}
+                    <div class="text-danger small">{{ error }}</div>
+                {% endfor %}
+            </div>
+
+            <div class="mb-3">
+                <label for="id_name" class="form-label">Product Name</label>
+                {{ form.name }}
+                {% for error in form.name.errors %}
+                    <div class="text-danger small">{{ error }}</div>
+                {% endfor %}
+            </div>
+
+            <div class="mb-3">
+                <label for="id_price" class="form-label">Price (₱)</label>
+                {{ form.price }}
+                {% for error in form.price.errors %}
+                    <div class="text-danger small">{{ error }}</div>
+                {% endfor %}
+            </div>
+
+            <div class="mb-3">
+                <label for="id_quantity" class="form-label">Quantity</label>
+                {{ form.quantity }}
+                {% for error in form.quantity.errors %}
+                    <div class="text-danger small">{{ error }}</div>
+                {% endfor %}
+            </div>
+
+            <div class="mb-3">
+                <label for="id_status" class="form-label">Status</label>
+                {{ form.status }}
+                {% for error in form.status.errors %}
+                    <div class="text-danger small">{{ error }}</div>
+                {% endfor %}
+            </div>
+
+            <button type="submit" class="btn btn-success w-100">Save Product</button>
+        </form>
+    </div>
+</div>
+{% endblock %}
