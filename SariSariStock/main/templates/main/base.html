@@ -11,7 +11,7 @@
     <title>{% block title %}Sari-Sari Store{% endblock %}</title>
 </head>
 <style>
-    .debugBorder{
+    .baseBorder{
         border: solid transparent 1px;
     }
 
@@ -55,7 +55,7 @@
         {% if user.is_authenticated %}
             {% block navigation %}{% include "main/navigation.html" %}{% endblock %}
         {% endif %}
-        <div class="container-fluid debugBorder" style="background: rgb(247, 247, 247);">
+        <div class="container-fluid baseBorder" style="background: rgb(247, 247, 247);">
             {% block content %}
             {% endblock %}
             

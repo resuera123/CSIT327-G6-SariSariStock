@@ -85,16 +85,16 @@
         </form>
 
         <div class="d-flex justify-content-start align-items-center gap-3 mb-3">
-            <a href="?status=active" class="fw-bold text-decoration-none {% if status_filter == 'active' %}text-primary border-bottom border-2 border-primary{% else %}text-secondary{% endif %}">
+            <a href="?status=active" class="fw-bold text-decoration-none {% if status_filter == 'active' %}text-success border-bottom border-2 border-success{% else %}text-secondary{% endif %}">
                 Active
             </a>
-            <a href="?status=archive" class="fw-bold text-decoration-none {% if status_filter == 'archive' %}text-primary border-bottom border-2 border-primary{% else %}text-secondary{% endif %}">
+            <a href="?status=archive" class="fw-bold text-decoration-none {% if status_filter == 'archive' %}text-danger border-bottom border-2 border-danger{% else %}text-secondary{% endif %}">
                 Archive
             </a>
         </div>
 
         <div class="table-responsive">
-          <table class="table table-bordered table-striped align-middle">
+          <table class="table table-bordered table-striped align-middle table-striped-columns border border-dark">
               <thead class="table-dark">
                   <tr>
                       <th>SKU</th>
@@ -115,7 +115,7 @@
                               <td>{{ product.name }}</td>
                               <td>{{ product.get_categories_display }}</td>
                               <td>₱{{ product.price }}</td>
-                              <td>{{ product.status|capfirst }}</td>
+                              <td><div class="{% if status_filter == 'active' %} bg-success text-white fw-bold text-center {% else %} bg-danger text-white fw-bold text-center {% endif %}">{{ product.status|capfirst }}</div></td>
                               <td>{{ product.quantity }}</td>
                               <td>{{ product.date_added|date:"M d, Y" }}</td>
                               <td class="d-flex flex-column align-items-center gap-2">
