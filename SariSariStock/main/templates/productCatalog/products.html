@@ -48,6 +48,15 @@
     background: rgb(131, 131, 131);
     border-radius: 10px;
   }
+
+  .activeStyle{
+    background: rgb(72, 207, 54) ;
+  }
+
+  .archiveStyle{
+    background: rgb(209, 27, 27) ;
+  }
+
 </style>
 
 <!-- SideBar -->
@@ -111,13 +120,13 @@
                   {% if products %}
                       {% for product in products %}
                           <tr>
-                              <td>{{ product.code }}</td>
-                              <td>{{ product.name }}</td>
-                              <td>{{ product.get_categories_display }}</td>
-                              <td>₱{{ product.price }}</td>
-                              <td><div class="{% if status_filter == 'active' %} bg-success text-white fw-bold text-center {% else %} bg-danger text-white fw-bold text-center {% endif %}">{{ product.status|capfirst }}</div></td>
-                              <td>{{ product.quantity }}</td>
-                              <td>{{ product.date_added|date:"M d, Y" }}</td>
+                              <td class="text-center">{{ product.code }}</td>
+                              <td class="text-center">{{ product.name }}</td>
+                              <td class="text-center">{{ product.get_categories_display }}</td>
+                              <td class="text-center">₱{{ product.price }}</td>
+                              <td><div class="rounded {% if status_filter == 'active' %} bg-success text-white fw-bold text-center {% else %} bg-danger text-white fw-bold text-center {% endif %}">{{ product.status|capfirst }}</div></td>
+                              <td class="text-center">{{ product.quantity }}</td>
+                              <td class="text-center">{{ product.date_added|date:"M d, Y" }}</td>
                               <td class="d-flex flex-column align-items-center gap-2">
                                   <a href="{% url 'edit_product' product.id %}" class="btn btn-sm btn-warning" style="width: 150px;">Edit</a>
                                   <form action="{% url 'delete_product' product.id %}" method="POST" class="d-inline">
