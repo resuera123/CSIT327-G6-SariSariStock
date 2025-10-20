@@ -1,5 +1,53 @@
 {% extends 'main/base.html' %}
 {% block content %}
+
+<style>
+  html, body {
+    height: 100%;
+    margin: 0;
+  }
+
+  .layout {
+    display: flex;
+    min-height: 100vh;
+  }
+
+  .sidebar {
+    width: 250px;
+    background-color: #212529; 
+    color: white;
+    padding: 1.5rem;
+  }
+
+  .main-content {
+    flex-grow: 1;
+    padding: 2rem;
+  }
+  .sidebarStyle{
+    background: white;
+    appearance: auto;
+    -webkit-appearance: menulist;
+    -moz-appearance: menulist;
+  }
+  .sidebarStyle a{
+    color: black;
+    border-radius: 10px;
+    transition: background 0.1s ease;
+  }
+
+  .sidebarStyle a:hover{
+    color: black;
+    background: rgb(187, 187, 187);
+    border-radius: 10px;
+  }
+
+  .sidebarStyle a:focus{
+    color: black;
+    background: rgb(131, 131, 131);
+    border-radius: 10px;
+  }
+</style>
+
 <div class="container mt-4">
     <h3 class="mb-4">Edit Product - {{ product.name }}</h3>
 

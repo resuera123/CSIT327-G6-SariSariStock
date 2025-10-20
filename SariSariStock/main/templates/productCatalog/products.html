@@ -57,9 +57,6 @@
   <div class="main-content text-dark">
     <div class="d-flex justify-content-between align-items-center mb-3">
       <h4 class="mb-0">Product Catalog</h4>
-      <a href="{% url 'add_product' %}" class="btn btn-success">
-        + Add Product
-      </a>
     </div>
 
         <form method="GET" action="" class="row g-2 mb-4">
@@ -81,7 +78,9 @@
             </select>
           </div>
           <div class="col-md-2">
-            <button type="submit" class="btn btn-primary w-100">Search</button>
+            <a href="{% url 'add_product' %}" class="btn btn-success btn w-100">
+              + Add Product
+            </a>
           </div>
         </form>
 
@@ -145,6 +144,39 @@
     </footer>
   </div>
 </div>
+
+<script>
+  document.querySelector('select[name="category"]').addEventListener('change', function() {
+    this.form.submit();
+  });
+
+  document.addEventListener("DOMContentLoaded", function() {
+    const searchInput = document.querySelector('input[name="q"]');
+    const categorySelect = document.querySelector('select[name="category"]');
+    const form = searchInput.closest("form");
+
+    // Submit the form when the category is changed
+    categorySelect.addEventListener("change", function() {
+      form.submit();
+    });
+
+    // Delay for typing (so it doesn’t submit on every keystroke)
+    let typingTimer;
+    const typingDelay = 500; // in milliseconds
+
+    searchInput.addEventListener("keyup", function() {
+      clearTimeout(typingTimer);
+      typingTimer = setTimeout(() => {
+        form.submit();
+      }, typingDelay);
+    });
+
+    searchInput.addEventListener("keydown", function() {
+      clearTimeout(typingTimer);
+    });
+  });
+
+</script>
 
 
 {% endblock %}

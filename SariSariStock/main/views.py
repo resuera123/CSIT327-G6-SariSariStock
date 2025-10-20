@@ -30,22 +30,21 @@ def LogOut(request):
 @login_required(login_url='/login/')
 def products(request):
     query = request.GET.get('q')
-    selected_category = request.GET.get('category')
+    selected_category = request.GET.get('category', 'all')
     status_filter = request.GET.get('status', 'active')
 
     products = Products.objects.filter(user=request.user)
+    categories = Products.CATEGORY_CHOICES
+    status = Products.STATUS_CHOICES
 
     if query:
         products = products.filter(Q(name__icontains=query) | Q(code__icontains=query))
 
-    if selected_category and selected_category != 'all':
-        products = products.filter(category=selected_category)
+    if selected_category != 'all' and selected_category:
+        products = products.filter(categories=selected_category)
 
     if status_filter:
         products = products.filter(status=status_filter)
-
-    categories = Products.CATEGORY_CHOICES
-    status = Products.STATUS_CHOICES
 
     return render(request, 'productCatalog/products.html', {
         'products': products,
