@@ -75,6 +75,11 @@
         color: #fff;
     }
 
+    table.dataTable thead th {
+        text-align: center !important;
+        vertical-align: middle !important;
+    }
+
     .dataTables_wrapper .dataTables_paginate {
     display: flex;
     justify-content: center;
@@ -165,75 +170,82 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script> 
     <script src="https://cdn.datatables.net/buttons/1.6.4/js/buttons.html5.min.js"></script> 
     <script src="https://cdn.datatables.net/buttons/1.6.4/js/buttons.print.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+    <script src="https://cdn.datatables.net/plug-ins/1.13.7/sorting/datetime-moment.js"></script>
 
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
     <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
     
     <script type="text/javascript">
-    $(document).ready(function() {
-        // Applies DataTables to the table with id="example"
-        var table = $('#example').DataTable({            
-            "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
-            "ordering": true,
-            "order": [],
-            "columnDefs": [
-                { 
-                    "orderable": false, 
-                    "targets": 7 
-                },
-                {
-                    "targets": [3,4], // Price column (index 3)
-                    "type": "num",
-                    "render": function(data, type, row) {
-                        if (type === 'sort' || type === 'type') {
-                            // Remove ₱ symbol and convert to number for sorting
-                            return parseFloat(data.replace('₱', '').replace(',', ''));
+        $.fn.dataTable.moment('MM/DD/YYYY');
+        $(document).ready(function() {
+            // Applies DataTables to the table with id="example"
+            var table = $('#example').DataTable({            
+                "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                "ordering": true,
+                "order": [],
+                "columnDefs": [
+                    { 
+                        "orderable": false, 
+                        "targets": 8 
+                    },
+                    {
+                        "targets": [3,4], // Price column (index 3)
+                        "type": "num",
+                        "render": function(data, type, row) {
+                            if (type === 'sort' || type === 'type') {
+                                // Remove ₱ symbol and convert to number for sorting
+                                return parseFloat(data.replace('₱', '').replace(',', ''));
+                            }
+                            return data; // Return original data for display
                         }
-                        return data; // Return original data for display
+                    },
+                    {
+                        "targets": 7,
+                        "type": "date",
                     }
-                }
-            ],
-            dom: 'lBrt<"d-flex justify-content-between align-items-center mt-3"ip>',
-            buttons: [      
-                {
-                    extend: 'excelHtml5',
-                    title: 'SariSariStock Product List',
-                    text:'<i class="bi bi-file-earmark-spreadsheet-fill"></i> Export to Excel',
-                    className: 'btn btn-outline-success btn-sm me-2 shadow-sm',
-                    exportOptions: {
-                        columns: ':visible:not(:last-child)'
-                    }
-                },
-                {
-                    extend: 'csvHtml5',
-                    title: 'SariSariStock Product List',                    
-                    text: '<i class="bi bi-filetype-csv"></i> Export to CSV',
-                    className: 'btn btn-outline-primary btn-sm me-2 shadow-sm',
-                    exportOptions: {
-                        columns: ':visible:not(:last-child)' 
-                    }
-                },
-                {
-                    extend: 'pdfHtml5',
-                    title: 'SariSariStock Product List',
-                    className: 'btn btn-outline-danger btn-sm me-2 shadow-sm',
-                    text: '<i class="bi bi-file-earmark-pdf"></i> Export to PDF',
-                    exportOptions: {
-                        columns: ':visible:not(:last-child)'
-                    }
-                },
-            ],
-            language: {
-                lengthMenu: 'Show _MENU_ Items',
-                info: 'Showing _START_ to _END_ of _TOTAL_ Items'
-            }      
-        });
+                ],
+                dom: 'lBrt<"d-flex justify-content-between align-items-center mt-3"ip>',
+                buttons: [      
+                    {
+                        extend: 'excelHtml5',
+                        title: 'SariSariStock Product List',
+                        text:'<i class="bi bi-file-earmark-spreadsheet-fill"></i> Export to Excel',
+                        className: 'btn btn-outline-success btn-sm me-2 shadow-sm',
+                        exportOptions: {
+                            columns: ':visible:not(:last-child)'
+                        }
+                    },
+                    {
+                        extend: 'csvHtml5',
+                        title: 'SariSariStock Product List',                    
+                        text: '<i class="bi bi-filetype-csv"></i> Export to CSV',
+                        className: 'btn btn-outline-primary btn-sm me-2 shadow-sm',
+                        exportOptions: {
+                            columns: ':visible:not(:last-child)' 
+                        }
+                    },
+                    {
+                        extend: 'pdfHtml5',
+                        title: 'SariSariStock Product List',
+                        className: 'btn btn-outline-danger btn-sm me-2 shadow-sm',
+                        text: '<i class="bi bi-file-earmark-pdf"></i> Export to PDF',
+                        exportOptions: {
+                            columns: ':visible:not(:last-child)'
+                        }
+                    },
+                ],
+                language: {
+                    lengthMenu: 'Show _MENU_ Items',
+                    info: 'Showing _START_ to _END_ of _TOTAL_ Items'
+                }      
+            });
 
-        // Move the length menu and buttons to the custom container
-        $('.dataTables_length').appendTo('#datatable-controls');
-        table.buttons().container().appendTo('#datatable-controls');
-    });
-</script>
-     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"  integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script> 
+            // Move the length menu and buttons to the custom container
+            $('.dataTables_length').appendTo('#datatable-controls');
+            table.buttons().container().appendTo('#datatable-controls');
+        });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"  integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script> 
 </body>
 </html>
