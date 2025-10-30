@@ -87,6 +87,14 @@
             </div>
 
             <div class="mb-3">
+                <label for="id_price" class="form-label">Cost (₱)</label>
+                {{ form.cost }}
+                {% for error in form.cost.errors %}
+                    <div class="text-danger small">{{ error }}</div>
+                {% endfor %}
+            </div>
+
+            <div class="mb-3">
                 <label for="id_price" class="form-label">Price (₱)</label>
                 {{ form.price }}
                 {% for error in form.price.errors %}

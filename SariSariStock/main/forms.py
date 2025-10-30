@@ -20,11 +20,12 @@ class RegisterForm(UserCreationForm):
 class ProductForm(forms.ModelForm):
     class Meta:
         model = Products
-        fields = ['code', 'categories', 'name', 'price', 'quantity', 'status']
+        fields = ['code', 'categories', 'name', 'cost', 'price', 'quantity', 'status']
         widgets = {
             'code': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter product SKU code'}),
             'categories': forms.Select(attrs={'class': 'form-select'}),
             'name': forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Enter product name'}),
+            'cost': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
             'price': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
             'quantity': forms.NumberInput(attrs={'class': 'form-control', 'min': '0'}),
             'status': forms.Select(attrs={'class': 'form-select'}),

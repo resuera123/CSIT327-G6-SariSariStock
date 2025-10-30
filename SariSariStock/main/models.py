@@ -25,6 +25,7 @@ class Products(models.Model):
     code = models.CharField(max_length=100)
     categories = models.CharField(max_length=20, choices=CATEGORY_CHOICES)
     name = models.TextField(max_length=100)
+    cost = models.FloatField(default=0)
     price = models.FloatField(default=0)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES)
     quantity = models.IntegerField(default=0)

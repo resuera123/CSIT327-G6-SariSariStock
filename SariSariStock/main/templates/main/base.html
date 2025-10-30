@@ -8,8 +8,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.22/css/jquery.dataTables.min.css">
-    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/1.6.4/css/buttons.dataTables.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.bootstrap5.min.css">
+
     <title>{% block title %}Sari-Sari Store{% endblock %}</title>
 </head>
 <style>
@@ -45,8 +46,8 @@
     table.dataTable thead th.sorting_desc::before {
         content: "▲";
         position: absolute;
-        right: 10px;
-        top: 50%;
+        right: 8px;
+        top: 55%;
         transform: translateY(-15px);
         opacity: 0.3;
         font-size: 0.8em;
@@ -57,46 +58,85 @@
     table.dataTable thead th.sorting_desc::after {
         content: "▼";
         position: absolute;
-        right: 10px;
-        top: 50%;
+        right: 8px;
+        top: 40%;
         transform: translateY(3px);
         opacity: 0.3;
         font-size: 0.8em;
     }
 
-    /* Highlight the active arrow when sorting */
     table.dataTable thead th.sorting_asc::before {
         opacity: 1;
-        color: #000;
+        color: #fff;
     }
 
     table.dataTable thead th.sorting_desc::after {
         opacity: 1;
-        color: #000;
+        color: #fff;
     }
+
+    .dataTables_wrapper .dataTables_paginate {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 12px;
+    }
+
+    .dataTables_wrapper .dataTables_paginate .pagination .page-item .page-link {
+    color: #212529; 
+    border: 1px solid #212529;
+    background-color: #ffffff; 
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-weight: 500;
+    transition: all 0.15s ease-in-out;
+    }
+
+    .dataTables_wrapper .dataTables_paginate .pagination .page-item .page-link:hover {
+    background-color: #212529 !important;
+    color: #ffffff !important;
+    border-color: #212529 !important;
+    text-decoration: none;
+    }
+
+    .dataTables_wrapper .dataTables_paginate .pagination .page-item.active .page-link {
+    background-color: #212529 !important; 
+    border-color: #212529 !important;
+    color: #fff !important;
+    }
+
+    .dataTables_wrapper .dataTables_paginate .pagination .page-item.disabled .page-link {
+    background-color: #f1f1f1 !important;
+    color: #a0a0a0 !important;
+    border-color: #e0e0e0 !important;
+    cursor: not-allowed;
+    }
+
+    .dataTables_wrapper .dataTables_paginate .pagination .page-item {
+    margin: 0 3px;
+    }
+
+    .dataTables_wrapper .dataTables_paginate .pagination .page-link {
+    font-size: 0.9rem;
+    }
+
 </style>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark fw-bold" id="nav">
-        <div class="container-fluid navigationBar">
-            <div>
-                <ul class="navbar-nav"> 
-                    <li class="nav-item">
-                        <p class="nav-item fs-3" ><i class="bi bi-check2-circle"></i> SariSariStock</p>
-                    </li>
-                </ul>
+    <nav class="navbar navbar-expand-lg navbar-light bg-white fw-bold border-bottom shadow-sm">
+        <div class="container-fluid d-flex justify-content-between align-items-center py-2">
+            <div class="d-flex align-items-center">
+                <i class="bi bi-check2-circle fs-3 me-2"></i>
+                <span class="fs-3 fw-bold text-dark">SariSariStock</span>
             </div>
-            <div>
-                <ul class="navbar-nav"> 
-                    {% if user.is_authenticated %}
-                    <span class="navbar-text" style="color:#212529">Logged in as {{user.first_name}} | </span>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/logout/" style="color:#212529">Logout &nbsp; <i class="bi bi-box-arrow-in-left"></i></a>
-                    </li>
-                    {% else %}
-                    &nbsp;
-                    {% endif %}
-                </ul>
+
+            {% if user.is_authenticated %}
+            <div class="d-flex align-items-center">
+                <span class="text-dark me-2">Logged in as <strong>{{ user.first_name }}</strong> |</span>
+                <a class="nav-link fw-bold text-dark d-flex align-items-center" href="/logout/">
+                    Logout &nbsp;<i class="bi bi-box-arrow-in-left ms-1"></i>
+                </a>
             </div>
+            {% endif %}
         </div>
     </nav>
     <div class="d-flex">
@@ -115,7 +155,6 @@
         </div>
     </div>
 
-
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 
     <script src="https://cdn.datatables.net/1.10.22/js/jquery.dataTables.min.js"></script> 
@@ -127,6 +166,9 @@
     <script src="https://cdn.datatables.net/buttons/1.6.4/js/buttons.html5.min.js"></script> 
     <script src="https://cdn.datatables.net/buttons/1.6.4/js/buttons.print.min.js"></script>
 
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+    
     <script type="text/javascript">
     $(document).ready(function() {
         // Applies DataTables to the table with id="example"
@@ -140,7 +182,7 @@
                     "targets": 7 
                 },
                 {
-                    "targets": 3, // Price column (index 3)
+                    "targets": [3,4], // Price column (index 3)
                     "type": "num",
                     "render": function(data, type, row) {
                         if (type === 'sort' || type === 'type') {
@@ -151,27 +193,40 @@
                     }
                 }
             ],
-            dom: 'lBrtip',
+            dom: 'lBrt<"d-flex justify-content-between align-items-center mt-3"ip>',
             buttons: [      
                 {
                     extend: 'excelHtml5',
                     title: 'SariSariStock Product List',
-                    text:'Export to Excel',
-                    className: 'btn btn-success btn-sm'
+                    text:'<i class="bi bi-file-earmark-spreadsheet-fill"></i> Export to Excel',
+                    className: 'btn btn-outline-success btn-sm me-2 shadow-sm',
+                    exportOptions: {
+                        columns: ':visible:not(:last-child)'
+                    }
                 },
                 {
                     extend: 'csvHtml5',
                     title: 'SariSariStock Product List',                    
-                    text: 'Export to CSV',
-                    className: 'btn btn-success btn-sm'
+                    text: '<i class="bi bi-filetype-csv"></i> Export to CSV',
+                    className: 'btn btn-outline-primary btn-sm me-2 shadow-sm',
+                    exportOptions: {
+                        columns: ':visible:not(:last-child)' 
+                    }
                 },
                 {
                     extend: 'pdfHtml5',
                     title: 'SariSariStock Product List',
-                    className: 'btn btn-success btn-sm',
-                    text: 'Export to PDF'
+                    className: 'btn btn-outline-danger btn-sm me-2 shadow-sm',
+                    text: '<i class="bi bi-file-earmark-pdf"></i> Export to PDF',
+                    exportOptions: {
+                        columns: ':visible:not(:last-child)'
+                    }
                 },
-            ]      
+            ],
+            language: {
+                lengthMenu: 'Show _MENU_ Items',
+                info: 'Showing _START_ to _END_ of _TOTAL_ Items'
+            }      
         });
 
         // Move the length menu and buttons to the custom container
