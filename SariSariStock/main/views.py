@@ -91,12 +91,30 @@ def delete_product(request, product_id):
 
     return render(request, 'productCatalog/delete_product.html', {'product': product})
 
-
+@login_required(login_url='/login/')
 def inventory(request):
-    return render(request, 'inventory/inventory.html')
 
+    products = Products.objects.filter(user=request.user)
+    categories = Products.CATEGORY_CHOICES
+
+    return render(request, 'inventory/inventory.html', {
+        'products': products,
+        'categories': categories,
+    })
+
+def add_stock(request, product_id):
+    product = get_object_or_404(Products, id=product_id, user=request.user)
+    if request.method == "POST":
+        quantity = int(request.POST.get("quantity", 0))
+        if quantity > 0:
+            product.quantity += quantity
+            product.save()
+    return redirect('/inventory') 
+
+@login_required(login_url='/login/')
 def pos(request):
     return render(request, 'pos/pos.html')
 
+@login_required(login_url='/login/')
 def sales(request):
     return render(request, 'sales/sales.html')

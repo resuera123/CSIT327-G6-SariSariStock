@@ -30,3 +30,15 @@ class ProductForm(forms.ModelForm):
             'quantity': forms.NumberInput(attrs={'class': 'form-control', 'min': '0'}),
             'status': forms.Select(attrs={'class': 'form-select'}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # ✅ Check if editing an existing product
+        if self.instance and self.instance.pk:
+            # Disable quantity in edit mode
+            self.fields['quantity'].widget.attrs['readonly'] = True
+            self.fields['quantity'].widget.attrs.update({
+                'disabled': True,
+                'class': 'form-control text-muted',
+            })
