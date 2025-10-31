@@ -111,8 +111,18 @@
   border: 1px solid #ccc;
 }
 
+.modal-content {
+  border-radius: 12px;
+  overflow: hidden;
+}
 
+.modal-header {
+  border-bottom: none;
+}
 
+.modal-footer {
+  border-top: none;
+}
 
 </style>
 
@@ -199,16 +209,80 @@
                               </td>
                               <td class="text-center">{{ product.date_added|date:"M d, Y" }}</td>
                               <td class="d-flex flex-column align-items-center gap-2">
-                                  <a href="{% url 'edit_product' product.id %}" class="btn btn-sm btn-warning" style="width: 150px; color: #fff;"><i class="bi bi-pencil-square"></i> Edit</a>
-                                  <form action="{% url 'delete_product' product.id %}" method="POST" class="d-inline">
-                                      {% csrf_token %}
-                                      <button type="submit" class="btn btn-sm btn-danger" style="width: 150px;"
-                                              onclick="return confirm('Are you sure you want to delete this product?');">
-                                          <i class="bi bi-trash"></i> Delete
-                                      </button>
-                                  </form>
+                                  <button type="button" class="btn btn-sm btn-primary" style="width: 82px;" data-bs-toggle="modal" data-bs-target="#viewProductModal{{ product.id }}">
+                                    <i class="bi bi-eye"></i> View
+                                  </button>
+                                  <a href="{% url 'edit_product' product.id %}" class="btn btn-sm btn-warning" style="width: 82px; color: #fff;"><i class="bi bi-pencil-square"></i> Edit</a>
+                                  <button type="button" class="btn btn-sm btn-danger" style="width: 82px;" data-bs-toggle="modal" data-bs-target="#deleteProductModal{{ product.id }}">
+                                      <i class="bi bi-trash"></i> Delete
+                                  </button>
                               </td>
                           </tr>
+
+                          <div class="modal fade" id="deleteProductModal{{ product.id }}" tabindex="-1" aria-labelledby="deleteProductModalLabel{{ product.id }}" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered">
+                              <div class="modal-content border-0 shadow-sm">
+                                <div class="modal-header bg-danger text-white">
+                                  <h5 class="modal-title" id="deleteProductModalLabel{{ product.id }}">
+                                    <i class="bi bi-exclamation-triangle-fill"></i> Confirm Deletion
+                                  </h5>
+                                </div>
+                                <div class="modal-body">
+                                  <p>Are you sure you want to delete <strong>{{ product.name }}</strong>? This action cannot be undone.</p>
+                                </div>
+                                <div class="modal-footer">
+                                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                  <form action="{% url 'delete_product' product.id %}" method="POST" class="d-inline">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-danger">
+                                      <i class="bi bi-trash-fill"></i> Delete
+                                    </button>
+                                  </form>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div class="modal fade" id="viewProductModal{{ product.id }}" tabindex="-1" aria-labelledby="viewProductLabel{{ product.id }}" aria-hidden="true">
+                            <div class="modal-dialog modal-md modal-dialog-centered">
+                              <div class="modal-content border-0 shadow-sm rounded-3">
+                                
+                                <!-- Header -->
+                                <div class="modal-header bg-primary text-white">
+                                  <h4 class="modal-title fw-bold" id="viewProductLabel{{ product.id }}">
+                                    <i class="bi bi-box-seam"></i> Product Details
+                                  </h4>
+                                </div>
+
+                                <!-- Body -->
+                                <div class="modal-body bg-light">
+                                  <div class="p-2">
+                                    <p><strong class="text-primary">Product Name:</strong> {{ product.name }}</p>
+                                    <p><strong class="text-primary">SKU:</strong> {{ product.code }}</p>
+                                    <p><strong class="text-primary">Category:</strong> {{ product.get_categories_display }}</p>
+                                    <p><strong class="text-primary">Cost:</strong> ₱{{ product.cost|floatformat:2 }}</p>
+                                    <p><strong class="text-primary">Price:</strong> ₱{{ product.price|floatformat:2 }}</p>
+                                    <p><strong class="text-primary">Status:</strong>
+                                      {% if product.status == 'active' %}
+                                        <span class="badge bg-success">{{ product.status|title }}</span>
+                                      {% else %}
+                                        <span class="badge bg-danger">{{ product.status|title }}</span>
+                                      {% endif %}
+                                    </p>
+                                    <p><strong class="text-primary">Date Added:</strong> {{ product.date_added|date:"F d, Y" }}</p>
+                                  </div>
+                                </div>
+
+                                <!-- Footer -->
+                                <div class="modal-footer bg-light border-0">
+                                  <button type="button" class="btn btn-danger" data-bs-dismiss="modal">
+                                     Close
+                                  </button>
+                                </div>
+
+                              </div>
+                            </div>
+                          </div>
                       {% endfor %}
                   {% else %}
                       <tr>
@@ -224,6 +298,8 @@
     </footer>
   </div>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
   document.querySelector('select[name="category"]').addEventListener('change', function() {
