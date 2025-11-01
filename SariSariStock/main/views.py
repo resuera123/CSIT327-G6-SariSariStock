@@ -10,7 +10,7 @@ from django.contrib.auth.views import LoginView
 
 class CustomLoginView(LoginView):
     template_name = 'registration/login.html'
-
+ 
     def dispatch(self, request, *args, **kwargs):
         if request.user.is_authenticated:
             return redirect('/home')
