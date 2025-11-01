@@ -6,6 +6,15 @@ from django.contrib.auth import login, logout, authenticate
 from .models import Products, MovementLog
 from django.db.models import Q
 from django.utils import timezone
+from django.contrib.auth.views import LoginView
+
+class CustomLoginView(LoginView):
+    template_name = 'registration/login.html'
+
+    def dispatch(self, request, *args, **kwargs):
+        if request.user.is_authenticated:
+            return redirect('/home')
+        return super().dispatch(request, *args, **kwargs)
 
 # Create your views here.
 @login_required(login_url='/login/')
@@ -13,6 +22,10 @@ def home(request):
     return render(request, 'main/home.html')
 
 def sign_up(request):
+
+    if request.user.is_authenticated:
+        return redirect('/home')
+
     if request.method == 'POST':
         form = RegisterForm(request.POST)
         if form.is_valid():
