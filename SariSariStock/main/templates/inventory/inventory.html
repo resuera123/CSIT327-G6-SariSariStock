@@ -70,6 +70,79 @@
     border-bottom: 3px solid #0d6efd;
     color: #0d6efd;
   }
+
+  /* Flex layout for the whole control bar */
+  #movement-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    width: 100%;
+    margin-bottom: 10px;
+  }
+
+  /* Left side: fix "Show 10 Logs" layout */
+  #movement-controls .dataTables_length {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  #movement-controls .dataTables_length label {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin: 0;
+  }
+
+  #movement-controls .dataTables_length select {
+    display: inline-block;
+    width: auto;
+  }
+
+  /* Right side: export buttons inline */
+  #movement-controls .dt-buttons {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  /* Flex layout for the whole control bar */
+  #stock-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    width: 100%;
+    margin-bottom: 10px;
+  }
+
+  /* Left side: fix "Show 10 Logs" layout */
+  #stock-controls .dataTables_length {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  #stock-controls .dataTables_length label {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin: 0;
+  }
+
+  #stock-controls .dataTables_length select {
+    display: inline-block;
+    width: auto;
+  }
+
+  /* Right side: export buttons inline */
+  #stock-controls .dt-buttons {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+    
 </style>
 
 <div class="layout">
@@ -88,7 +161,10 @@
 
     <!-- In-Stock Section -->
     <div id="instock-section" class="toggle-section ">
-        <table class="table table-bordered table-striped align-middle table-striped-columns border border-dark text-center">
+        <div id="stock-controls" class="d-flex justify-content-between align-items-center mb-2 flex-wrap">
+          
+        </div>
+        <table id="stockTable" class="table table-bordered table-striped align-middle table-striped-columns border border-dark text-center">
             <thead class="table-dark">
                 <tr>
                     <th>SKU</th>
@@ -116,34 +192,89 @@
                           <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#addStockModal{{ product.id }}">
                               <i class="bi bi-plus-lg"></i> Add Stock
                           </button>
+
+                          <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#reduceStockModal{{ product.id }}">
+                              <i class="bi bi-dash-lg"></i> Reduce Stock
+                          </button>
                         </td>
                     </tr>
                     
+                    <!-- ADD STOCK MODAL -->
                     <div class="modal fade" id="addStockModal{{ product.id }}" tabindex="-1" aria-labelledby="addStockLabel{{ product.id }}" aria-hidden="true">
-                        <div class="modal-dialog modal-md"> 
-                            <div class="modal-content p-3">
-                                <div class="modal-header">
-                                    <h5 class="modal-title" id="addStockLabel{{ product.id }}">Add Stock - {{ product.name }}</h5>
-                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                </div>
-                                <form method="POST" action="{% url 'add_stock' product.id %}">
-                                    {% csrf_token %}
-                                    <div class="modal-body">
-                                        <div class="mb-3">
-                                            <label for="quantity{{ product.id }}" class="form-label">Quantity</label>
-                                            <div class="input-group">
-                                                <input type="number" class="form-control" id="quantity{{ product.id }}" name="quantity" min="1" value="1" required>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="modal-footer">
-                                        <button type="submit" class="btn btn-success">Add</button>
-                                        <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cancel</button>
-                                    </div>
-                                </form>
+                      <div class="modal-dialog modal-md modal-dialog-centered">
+                        <div class="modal-content border-0 shadow-sm rounded-3">
+                          
+                          <div class="modal-header bg-success text-white">
+                            <h4 class="modal-title fw-bold" id="addStockLabel{{ product.id }}">
+                              <i class="bi bi-box-arrow-in-up"></i> Add Stock - {{ product.name }}
+                            </h4>
+                          </div>
+
+                          <form method="POST" action="{% url 'add_stock' product.id %}">
+                            {% csrf_token %}
+                            <div class="modal-body bg-light">
+                              <div class="mb-3">
+                                <label for="quantity{{ product.id }}" class="form-label fw-semibold text-success">Quantity</label>
+                                <input type="number" class="form-control border-success" name="quantity" min="1" value="1" required>
+                              </div>
+                              <div class="mb-3">
+                                <label for="note{{ product.id }}" class="form-label fw-semibold text-success">Note</label>
+                                <textarea class="form-control border-success" name="note" rows="2" placeholder="e.g. Restock from supplier"></textarea>
+                              </div>
                             </div>
+
+                            <div class="modal-footer bg-light border-0">
+                              <button type="submit" class="btn btn-success">
+                                Add
+                              </button>
+                              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                Cancel
+                              </button>
+                            </div>
+                          </form>
+
                         </div>
+                      </div>
                     </div>
+
+                    <!-- REDUCE STOCK MODAL -->
+                    <div class="modal fade" id="reduceStockModal{{ product.id }}" tabindex="-1" aria-labelledby="reduceStockLabel{{ product.id }}" aria-hidden="true">
+                      <div class="modal-dialog modal-md modal-dialog-centered">
+                        <div class="modal-content border-0 shadow-sm rounded-3">
+
+                          <div class="modal-header bg-danger text-white">
+                            <h4 class="modal-title fw-bold" id="reduceStockLabel{{ product.id }}">
+                              <i class="bi bi-box-arrow-down"></i> Reduce Stock - {{ product.name }}
+                            </h4>
+                          </div>
+
+                          <form method="POST" action="{% url 'reduce_stock' product.id %}">
+                            {% csrf_token %}
+                            <div class="modal-body bg-light">
+                              <div class="mb-3">
+                                <label for="quantity{{ product.id }}" class="form-label fw-semibold text-danger">Quantity</label>
+                                <input type="number" class="form-control border-danger" name="quantity" min="1" value="1" required>
+                              </div>
+                              <div class="mb-3">
+                                <label for="note{{ product.id }}" class="form-label fw-semibold text-danger">Note</label>
+                                <textarea class="form-control border-danger" name="note" rows="2" placeholder="e.g. Damaged items or expired stock"></textarea>
+                              </div>
+                            </div>
+
+                            <div class="modal-footer bg-light border-0">
+                              <button type="submit" class="btn btn-danger">
+                                Reduce
+                              </button>
+                              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                Cancel
+                              </button>
+                            </div>
+                          </form>
+
+                        </div>
+                      </div>
+                    </div>
+
                     {% endif %}
                 {% empty %}
                     <tr><td colspan="4">No products available.</td></tr>
@@ -153,8 +284,11 @@
     </div>
 
     <!-- Movement Log Section -->
-    <div id="movement-section" class="toggle-section d-none">
-        <table class="table table-striped table-bordered text-center align-middle">
+    <div id="movement-section" class="toggle-section d-none ">
+        <div id="movement-controls" class="d-flex justify-content-between align-items-center mb-2 flex-wrap">
+          
+        </div>
+        <table id="movementTable" class="table table-striped table-bordered text-center align-middle table-striped-columns border border-dark">
             <thead class="table-dark">
                 <tr>
                     <th>Date</th>
@@ -162,12 +296,13 @@
                     <th>SKU</th>
                     <th>Product Name</th>
                     <th>Quantity Change</th>
+                    <th>Note</th>
                 </tr>
             </thead>
             <tbody>
                 {% for log in movement_logs %}
                 <tr>
-                    <td>{{ log.date }}</td>
+                    <td>{{ log.date|date:"M d, Y" }}</td>
                     <td>{{ log.reference }}</td>
                     <td>{{ log.product.code }}</td>
                     <td>{{ log.product.name }}</td>
@@ -178,6 +313,7 @@
                             <span class="text-danger">{{ log.change }}</span>
                         {% endif %}
                     </td>
+                    <td>{{ log.note|default:"—" }}</td>
                 </tr>
                 {% empty %}
                     <tr><td colspan="5">No movement logs yet.</td></tr>
@@ -215,6 +351,7 @@ document.addEventListener("DOMContentLoaded", function () {
             this.classList.add("active");
         });
     });
+
 });
 
 </script>

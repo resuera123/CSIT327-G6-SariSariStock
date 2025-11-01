@@ -246,6 +246,94 @@
             // Move the length menu and buttons to the custom container
             $('.dataTables_length').appendTo('#datatable-controls');
             table.buttons().container().appendTo('#datatable-controls');
+
+            var stockTable = $('#stockTable').DataTable({
+                "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                "ordering": true,
+                "order": [[0, "desc"]],  // Sort by date, newest first
+                dom: 'lBrt<"d-flex justify-content-between align-items-center mt-3"ip>',
+                buttons: [
+                    {
+                        extend: 'excelHtml5',
+                        title: 'SariSariStock Inventory List',
+                        text: '<i class="bi bi-file-earmark-spreadsheet"></i> Export to Excel',
+                        className: 'btn btn-outline-success btn-sm me-2 shadow-sm',
+                        exportOptions: {
+                            columns: ':visible:not(:last-child)' 
+                        }
+                    },
+                    {
+                        extend: 'csvHtml5',
+                        title: 'SariSariStock Inventory List',
+                        text: '<i class="bi bi-filetype-csv"></i> Export to CSV',
+                        className: 'btn btn-outline-primary btn-sm me-2 shadow-sm',
+                        exportOptions: {
+                            columns: ':visible:not(:last-child)' 
+                        }
+                    },
+                    {
+                        extend: 'pdfHtml5',
+                        title: 'SariSariStock Inventory List',
+                        className: 'btn btn-outline-danger btn-sm me-2 shadow-sm',
+                        text: '<i class="bi bi-file-earmark-pdf"></i> Export to PDF',
+                        exportOptions: {
+                            columns: ':visible:not(:last-child)'
+                        }
+                    },
+                ],
+                language: {
+                    lengthMenu: 'Show _MENU_ Items',
+                    info: 'Showing _START_ to _END_ of _TOTAL_ Items'
+                }
+            });
+
+            // Optional: separate controls for movement table
+            $('#stockTable_length').appendTo('#stock-controls');  
+            stockTable.buttons().container().appendTo('#stock-controls');
+
+            var movementTable = $('#movementTable').DataTable({
+                "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                "ordering": true,
+                "order": [[0, "desc"]],  // Sort by date, newest first
+                dom: 'lBrt<"d-flex justify-content-between align-items-center mt-3"ip>',
+                buttons: [
+                    {
+                        extend: 'excelHtml5',
+                        title: 'SariSariStock Movement Log',
+                        text: '<i class="bi bi-file-earmark-spreadsheet"></i> Export to Excel',
+                        className: 'btn btn-outline-success btn-sm me-2 shadow-sm',
+                        exportOptions: {
+                            columns: ':visible:not(:last-child)' 
+                        }
+                    },
+                    {
+                        extend: 'csvHtml5',
+                        title: 'SariSariStock Movement Log',
+                        text: '<i class="bi bi-filetype-csv"></i> Export to CSV',
+                        className: 'btn btn-outline-primary btn-sm me-2 shadow-sm',
+                        exportOptions: {
+                            columns: ':visible:not(:last-child)' 
+                        }
+                    },
+                    {
+                        extend: 'pdfHtml5',
+                        title: 'SariSariStock Movement Log',
+                        className: 'btn btn-outline-danger btn-sm me-2 shadow-sm',
+                        text: '<i class="bi bi-file-earmark-pdf"></i> Export to PDF',
+                        exportOptions: {
+                            columns: ':visible:not(:last-child)'
+                        }
+                    },
+                ],
+                language: {
+                    lengthMenu: 'Show _MENU_ Logs',
+                    info: 'Showing _START_ to _END_ of _TOTAL_ Logs'
+                }
+            });
+
+            // Optional: separate controls for movement table
+            $('#movementTable_length').appendTo('#movement-controls');  
+            movementTable.buttons().container().appendTo('#movement-controls');
         });
     </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"  integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script> 

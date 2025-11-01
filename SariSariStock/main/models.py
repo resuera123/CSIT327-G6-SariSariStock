@@ -35,6 +35,19 @@ class Products(models.Model):
     def __str__(self):
         return self.code + " - " + self.name
     
+class MovementLog(models.Model):
+    product = models.ForeignKey(Products, on_delete=models.CASCADE, related_name='movement_logs')
+    reference = models.CharField(max_length=100)
+    date = models.DateTimeField(default=timezone.now)
+    change = models.IntegerField()
+    note = models.TextField(blank=True, null=True)
+
+    class Meta:
+        ordering = ['-date']
+
+    def __str__(self):
+        return self.product.code + " - " + self.reference
+    
 class Sales(models.Model):
     code = models.CharField(max_length=100)
     sub_total = models.FloatField(default=0)

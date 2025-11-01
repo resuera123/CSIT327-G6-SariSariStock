@@ -3,8 +3,9 @@ from django.contrib import messages
 from .forms import RegisterForm, ProductForm
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import login, logout, authenticate
-from .models import Products
+from .models import Products, MovementLog
 from django.db.models import Q
+from django.utils import timezone
 
 # Create your views here.
 @login_required(login_url='/login/')
@@ -96,20 +97,57 @@ def inventory(request):
 
     products = Products.objects.filter(user=request.user)
     categories = Products.CATEGORY_CHOICES
+    movement_logs = MovementLog.objects.filter(product__user=request.user).order_by('-date')
 
     return render(request, 'inventory/inventory.html', {
         'products': products,
         'categories': categories,
+        'movement_logs': movement_logs,
     })
 
+@login_required(login_url='/login/')
 def add_stock(request, product_id):
-    product = get_object_or_404(Products, id=product_id, user=request.user)
-    if request.method == "POST":
-        quantity = int(request.POST.get("quantity", 0))
-        if quantity > 0:
-            product.quantity += quantity
-            product.save()
+    product = get_object_or_404(Products, id=product_id)
+    if request.method == 'POST':
+        qty = int(request.POST.get('quantity'))
+        note = request.POST.get('note', '')
+
+        product.quantity += qty
+        product.save()
+
+        local_time = timezone.localtime(timezone.now())
+
+        MovementLog.objects.create(
+            product=product,
+            reference=f"AS#{local_time.strftime('%H%M%S')}",
+            change=qty,
+            note=note
+        )
+
     return redirect('/inventory') 
+
+def reduce_stock(request, product_id):
+    product = get_object_or_404(Products, id=product_id)
+    if request.method == 'POST':
+        qty = int(request.POST.get('quantity'))
+        note = request.POST.get('note', '')
+
+        if qty > product.quantity:
+            qty = product.quantity  # prevent negative stock
+
+        product.quantity -= qty
+        product.save()
+
+        local_time = timezone.localtime(timezone.now())
+
+        MovementLog.objects.create(
+            product=product,
+            reference=f"RS#{local_time.strftime('%H%M%S')}",
+            change=-qty,
+            note=note
+        )
+
+    return redirect('/inventory')
 
 @login_required(login_url='/login/')
 def pos(request):
