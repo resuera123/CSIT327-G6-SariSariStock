@@ -7,6 +7,8 @@ from .models import Products, MovementLog
 from django.db.models import Q
 from django.utils import timezone
 from django.contrib.auth.views import LoginView
+from django.http import JsonResponse
+import json
 
 class CustomLoginView(LoginView):
     template_name = 'registration/login.html'
@@ -164,7 +166,86 @@ def reduce_stock(request, product_id):
 
 @login_required(login_url='/login/')
 def pos(request):
-    return render(request, 'pos/pos.html')
+    # Get only active products with quantity > 0
+    products = Products.objects.filter(
+        user=request.user, 
+        status='active',
+        quantity__gt=0
+    ).order_by('name')
+    
+    context = {
+        'products': products,
+    }
+    
+    return render(request, 'pos/pos.html', context)
+
+@login_required(login_url='/login/')
+def checkout_pos(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            cart_items = data.get('cart', [])
+            cash_received = float(data.get('cash_received', 0))
+            
+            if not cart_items:
+                return JsonResponse({'success': False, 'error': 'Cart is empty'})
+            
+            # Calculate total
+            total = 0
+            
+            # Validate stock
+            for item in cart_items:
+                product = Products.objects.get(id=item['id'], user=request.user)
+                
+                # Check if enough stock
+                if product.quantity < item['quantity']:
+                    return JsonResponse({
+                        'success': False, 
+                        'error': f'Insufficient stock for {product.name}'
+                    })
+                
+                total += product.price * item['quantity']
+            
+            # Check if cash received is sufficient
+            if cash_received < total:
+                return JsonResponse({'success': False, 'error': 'Insufficient cash received'})
+            
+            # Generate reference code for movement logs
+            local_time = timezone.localtime(timezone.now())
+            reference_code = f"PS#{local_time.strftime('%H%M%S')}"
+            
+            # Update product quantities and create movement logs
+            for item in cart_items:
+                product = Products.objects.get(id=item['id'], user=request.user)
+                quantity = item['quantity']
+                
+                # Update product quantity
+                product.quantity -= quantity
+                product.save()
+                
+                # Create movement log
+                MovementLog.objects.create(
+                    product=product,
+                    reference=reference_code,
+                    change=-quantity,
+                    note=f"Product Sold"
+                )
+            
+            return JsonResponse({
+                'success': True,
+                'reference': reference_code,
+                'total': total
+            })
+            
+        except Products.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'Product not found'})
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)})
+    
+    return JsonResponse({'success': False, 'error': 'Invalid request method'})
+
+
+
 
 @login_required(login_url='/login/')
 def sales(request):

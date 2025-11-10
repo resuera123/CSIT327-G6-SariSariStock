@@ -2,7 +2,9 @@
 {% load humanize %}
 {% block title %}SariSariStock | Point of Sale{% endblock %}
 
+
 {% block content %}
+
 <style>
   html, body {
     height: 100%;
@@ -14,45 +16,422 @@
     min-height: 100vh;
   }
 
-  .sidebar {
-    width: 250px;
-    background-color: #212529; 
-    color: white;
-    padding: 1.5rem;
-  }
-
   .main-content {
     flex-grow: 1;
     padding: 2rem;
   }
-  .sidebarStyle{
+
+  .pos-container {
+    display: flex;
+    gap: 1.5rem;
+    min-height: calc(100vh - 200px);
+  }
+
+  /* Left Side - Products */
+  .products-section {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
     background: white;
-  }
-  .sidebarStyle a{
-    color: black;
     border-radius: 10px;
-    transition: background 0.1s ease;
+    padding: 1.5rem;
+    overflow: hidden;
   }
 
-  .sidebarStyle a:hover{
-    color: black;
-    background: rgb(187, 187, 187);
+  .search-bar {
+    margin-bottom: 1rem;
+  }
+
+  .products-available {
+    font-size: 0.9rem;
+    color: #6c757d;
+    margin-bottom: 1rem;
+  }
+
+  .products-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+    overflow-y: auto;
+    flex: 1;
+    padding-right: 0.5rem;
+    max-height: calc(100vh - 350px);
+  }
+
+  .product-card {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 1rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .product-card:hover {
+    background: #e9ecef;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  }
+
+  .product-card.out-of-stock {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .product-card.out-of-stock:hover {
+    transform: none;
+    box-shadow: none;
+  }
+
+  .product-name {
+    font-weight: 600;
+    font-size: 0.95rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .product-code {
+    font-size: 0.8rem;
+    color: #6c757d;
+    margin-bottom: 0.5rem;
+  }
+
+  .product-price {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #198754;
+    margin-bottom: 0.25rem;
+  }
+
+  .product-stock {
+    font-size: 0.8rem;
+    color: #6c757d;
+  }
+
+  .product-stock.low-stock {
+    color: #dc3545;
+    font-weight: 600;
+  }
+
+  /* Right Side - Cart */
+  .cart-section {
+    width: 400px;
+    background: white;
+    border-radius: 10px;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    max-height: calc(100vh - 200px);
+  }
+
+  .cart-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #dee2e6;
+  }
+
+  .cart-items {
+    flex: 1;
+    overflow-y: auto;
+    margin-bottom: 1rem;
+    min-height: 200px;
+    max-height: 350px;
+  }
+
+  .cart-item {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .cart-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+    margin-bottom: 0.5rem;
+  }
+
+  .cart-item-name {
+    font-weight: 600;
+    font-size: 0.95rem;
+  }
+
+  .cart-item-price {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #198754;
+  }
+
+  .cart-item-code {
+    font-size: 0.8rem;
+    color: #6c757d;
+    margin-bottom: 0.5rem;
+  }
+
+  .cart-item-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .quantity-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .qty-btn {
+    width: 30px;
+    height: 30px;
+    border: 1px solid #dee2e6;
+    background: white;
+    border-radius: 5px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+  }
+
+  .qty-btn:hover:not(:disabled) {
+    background: #e9ecef;
+  }
+
+  .qty-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+
+  .qty-display {
+    min-width: 40px;
+    text-align: center;
+    font-weight: 600;
+  }
+
+  .remove-btn {
+    color: #dc3545;
+    cursor: pointer;
+    font-size: 1.2rem;
+  }
+
+  .remove-btn:hover {
+    color: #bb2d3b;
+  }
+
+  .cart-empty {
+    text-align: center;
+    color: #6c757d;
+    padding: 2rem;
+    font-style: italic;
+  }
+
+  .cart-summary {
+    border-top: 2px solid #dee2e6;
+    padding-top: 1rem;
+  }
+
+  .summary-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.75rem;
+    font-size: 1rem;
+  }
+
+  .summary-row.total {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #198754;
+
+  }
+
+  .cash-received-section {
+    margin: 1rem 0;
+  }
+
+  .cash-received-section label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    display: block;
+  }
+
+  .cash-received-section input {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid #dee2e6;
+    border-radius: 5px;
+    font-size: 1rem;
+  }
+
+  .change-display {
+    font-size: 0.9rem;
+    color: #6c757d;
+    margin-top: 0.5rem;
+  }
+
+  .change-display.insufficient {
+    color: #dc3545;
+    font-weight: 600;
+  }
+
+  .checkout-btn {
+    width: 100%;
+    padding: 1rem;
+    background: #212529;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .checkout-btn:hover:not(:disabled) {
+    background: #000;
+  }
+
+  .checkout-btn:disabled {
+    background: #6c757d;
+    cursor: not-allowed;
+  }
+
+  .checkout-note {
+    font-size: 0.8rem;
+    color: #6c757d;
+    text-align: center;
+    margin-top: 0.5rem;
+    font-style: italic;
+  }
+
+  /* Scrollbar styling */
+  .products-grid::-webkit-scrollbar,
+  .cart-items::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  .products-grid::-webkit-scrollbar-track,
+  .cart-items::-webkit-scrollbar-track {
+    background: #f1f1f1;
     border-radius: 10px;
   }
 
-  .sidebarStyle a:focus{
-    color: black;
-    background: rgb(131, 131, 131);
+  .products-grid::-webkit-scrollbar-thumb,
+  .cart-items::-webkit-scrollbar-thumb {
+    background: #888;
     border-radius: 10px;
   }
+
+  .products-grid::-webkit-scrollbar-thumb:hover,
+  .cart-items::-webkit-scrollbar-thumb:hover {
+    background: #555;
+  }
+
+  .sidebar {
+  width: 250px;
+  background-color: #212529; 
+  color: white;
+  padding: 1.5rem;
+}
+
+.sidebarStyle {
+  background: white;
+}
+
+.sidebarStyle a {
+  color: black;
+  border-radius: 10px;
+  transition: background 0.1s ease;
+}
+
+.sidebarStyle a:hover {
+  color: black;
+  background: rgb(187, 187, 187);
+  border-radius: 10px;
+}
+
+.sidebarStyle a:focus {
+  color: black;
+  background: rgb(131, 131, 131);
+  border-radius: 10px;
+}
+
+
+
 </style>
 
-<!-- SideBar -->
 <div class="layout">
-
-  <!-- Main content -->
   <div class="main-content text-dark">
-    <h1 class="text-center mb-5">This is the PoS Area</h1>
+    <div class="d-flex flex-column mb-3">
+      <h3 class="mb-0">Point of Sale</h3>
+      <span class="text-muted">Select products to add to cart and complete transactions.</span>
+    </div>
+
+    <div class="pos-container">
+      <!-- Left Side - Products -->
+      <div class="products-section">
+        <div class="search-bar">
+          <input type="text" class="form-control" placeholder="Search products by name, code, or category" id="searchInput">
+        </div>
+        
+        <div class="products-available">
+          <strong id="productCount">{{ products.count }}</strong> available
+        </div>
+
+        <div class="products-grid" id="productsGrid">
+          {% for product in products %}
+          <div class="product-card" 
+               data-id="{{ product.id }}"
+               data-name="{{ product.name }}"
+               data-code="{{ product.code }}"
+               data-price="{{ product.price }}"
+               data-stock="{{ product.quantity }}"
+               data-category="{{ product.get_categories_display }}"
+               onclick="addToCart({{ product.id }})">
+            <div class="product-name">{{ product.name }}</div>
+            <div class="product-code">{{ product.code }} • {{ product.get_categories_display }}</div>
+            <div class="product-price">₱{{ product.price|floatformat:2 }}</div>
+            <div class="product-stock {% if product.quantity <= 10 %}low-stock{% endif %}">
+              On hand: {{ product.quantity }}
+            </div>
+          </div>
+          {% empty %}
+          <div class="text-muted" style="grid-column: 1/-1; text-align: center; padding: 2rem;">
+            No products available
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Right Side - Cart -->
+      <div class="cart-section">
+        <div class="cart-title">Cart</div>
+
+        <div class="cart-items" id="cartItems">
+          <div class="cart-empty" id="emptyCart">No items in cart</div>
+        </div>
+
+        <div class="cart-summary">
+          <div class="summary-row total">
+            <span>Total</span>
+            <span id="total">₱0.00</span>
+          </div>
+        </div>
+
+        <div class="cash-received-section">
+          <label>Cash Received</label>
+          <input type="number" class="form-control" placeholder="0" value="0" id="cashReceived" oninput="calculateChange()">
+          <div class="change-display" id="changeDisplay">Change: ₱0.00</div>
+        </div>
+
+        <button class="checkout-btn" id="checkoutBtn" onclick="checkout()" disabled>Checkout</button>
+        <div class="checkout-note">
+          Checking out creates a Transaction and logs stock movements. No barcode scanner required — tap to add.
+        </div>
+      </div>
+    </div>
 
     <footer class="bg-white text-dark text-center border-top mt-5 py-3">
       &copy; 2025 Group8 SariSariStock. All rights reserved.
@@ -60,5 +439,240 @@
   </div>
 </div>
 
+<script>
+// Cart data structure
+let cart = [];
+
+// Add product to cart
+function addToCart(productId) {
+  const productCard = document.querySelector(`[data-id="${productId}"]`);
+  const productData = {
+    id: productId,
+    name: productCard.dataset.name,
+    code: productCard.dataset.code,
+    price: parseFloat(productCard.dataset.price),
+    stock: parseInt(productCard.dataset.stock),
+    category: productCard.dataset.category
+  };
+
+  // Check if product already in cart
+  const existingItem = cart.find(item => item.id === productId);
+  
+  if (existingItem) {
+    // Check if we can add more
+    if (existingItem.quantity < productData.stock) {
+      existingItem.quantity++;
+    } else {
+      alert('Not enough stock available');
+      return;
+    }
+  } else {
+    // Add new item to cart
+    cart.push({
+      ...productData,
+      quantity: 1
+    });
+  }
+
+  renderCart();
+  updateSummary();
+}
+
+// Remove item from cart
+function removeFromCart(productId) {
+  cart = cart.filter(item => item.id !== productId);
+  renderCart();
+  updateSummary();
+}
+
+// Update quantity
+function updateQuantity(productId, change) {
+  const item = cart.find(item => item.id === productId);
+  if (!item) return;
+
+  const newQuantity = item.quantity + change;
+  
+  if (newQuantity <= 0) {
+    removeFromCart(productId);
+  } else if (newQuantity <= item.stock) {
+    item.quantity = newQuantity;
+    renderCart();
+    updateSummary();
+  } else {
+    alert('Not enough stock available');
+  }
+}
+
+// Render cart items
+function renderCart() {
+  const cartItemsDiv = document.getElementById('cartItems');
+  const emptyCart = document.getElementById('emptyCart');
+  
+  if (cart.length === 0) {
+    emptyCart.style.display = 'block';
+    cartItemsDiv.querySelectorAll('.cart-item').forEach(item => item.remove());
+    return;
+  }
+
+  emptyCart.style.display = 'none';
+  
+  // Clear existing items
+  cartItemsDiv.querySelectorAll('.cart-item').forEach(item => item.remove());
+  
+  // Add items
+  cart.forEach(item => {
+    const itemTotal = item.price * item.quantity;
+    const cartItem = document.createElement('div');
+    cartItem.className = 'cart-item';
+    cartItem.innerHTML = `
+      <div class="cart-item-header">
+        <div>
+          <div class="cart-item-name">${item.name}</div>
+          <div class="cart-item-code">₱${item.price.toFixed(2)} • ${item.code}</div>
+        </div>
+        <div class="cart-item-price">₱${itemTotal.toFixed(2)}</div>
+      </div>
+      <div class="cart-item-controls">
+        <div class="quantity-controls">
+          <button class="qty-btn" onclick="updateQuantity(${item.id}, -1)">−</button>
+          <span class="qty-display">${item.quantity}</span>
+          <button class="qty-btn" onclick="updateQuantity(${item.id}, 1)" ${item.quantity >= item.stock ? 'disabled' : ''}>+</button>
+        </div>
+        <i class="bi bi-trash remove-btn" onclick="removeFromCart(${item.id})"></i>
+      </div>
+    `;
+    cartItemsDiv.appendChild(cartItem);
+  });
+}
+
+// Update summary
+function updateSummary() {
+  const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  
+  
+  document.getElementById('total').textContent = `₱${subtotal.toFixed(2)}`;
+  
+  // Enable/disable checkout button
+  const checkoutBtn = document.getElementById('checkoutBtn');
+  checkoutBtn.disabled = cart.length === 0;
+  
+  calculateChange();
+}
+
+// Calculate change
+function calculateChange() {
+  const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  const cashReceived = parseFloat(document.getElementById('cashReceived').value) || 0;
+  const change = cashReceived - total;
+  
+  const changeDisplay = document.getElementById('changeDisplay');
+  
+  if (change < 0) {
+    changeDisplay.textContent = `Change: ₱${change.toFixed(2)} (Insufficient)`;
+    changeDisplay.classList.add('insufficient');
+  } else {
+    changeDisplay.textContent = `Change: ₱${change.toFixed(2)}`;
+    changeDisplay.classList.remove('insufficient');
+  }
+}
+
+// Search functionality
+document.getElementById('searchInput').addEventListener('input', function(e) {
+  const searchTerm = e.target.value.toLowerCase();
+  const productCards = document.querySelectorAll('.product-card');
+  let visibleCount = 0;
+  
+  productCards.forEach(card => {
+    const name = card.dataset.name.toLowerCase();
+    const code = card.dataset.code.toLowerCase();
+    const category = card.dataset.category.toLowerCase();
+    
+    if (name.includes(searchTerm) || code.includes(searchTerm) || category.includes(searchTerm)) {
+      card.style.display = 'block';
+      visibleCount++;
+    } else {
+      card.style.display = 'none';
+    }
+  });
+  
+  document.getElementById('productCount').textContent = visibleCount;
+});
+
+// Checkout function - WITHOUT creating Sales record
+function checkout() {
+  if (cart.length === 0) {
+    alert('Cart is empty');
+    return;
+  }
+  
+  const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  const cashReceived = parseFloat(document.getElementById('cashReceived').value) || 0;
+  
+  if (cashReceived < total) {
+    alert('Insufficient cash received');
+    return;
+  }
+  
+  const change = cashReceived - total;
+  const confirmation = confirm(`Process sale of ₱${total.toFixed(2)}?\nChange: ₱${change.toFixed(2)}`);
+  
+  if (!confirmation) return;
+  
+  // Disable checkout button
+  const checkoutBtn = document.getElementById('checkoutBtn');
+  checkoutBtn.disabled = true;
+  checkoutBtn.textContent = 'Processing...';
+  
+  // Prepare cart data
+  const cartData = cart.map(item => ({
+    id: item.id,
+    quantity: item.quantity
+  }));
+  
+  // Send to backend to update quantities and create movement logs
+  fetch('{% url "checkout_pos" %}', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': '{{ csrf_token }}'
+    },
+    body: JSON.stringify({
+      cart: cartData,
+      cash_received: cashReceived
+    })
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      alert(`Sale completed successfully!\n\nTotal: ₱${total.toFixed(2)}\nChange: ₱${change.toFixed(2)}`);
+      
+      // Clear cart and reset
+      cart = [];
+      renderCart();
+      updateSummary();
+      document.getElementById('cashReceived').value = 0;
+      
+      // Reload page to update product quantities
+      location.reload();
+    } else {
+      alert('Error: ' + data.error);
+      checkoutBtn.disabled = false;
+      checkoutBtn.textContent = 'Checkout';
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    alert('An error occurred during checkout');
+    checkoutBtn.disabled = false;
+    checkoutBtn.textContent = 'Checkout';
+  });
+}
+
+// Initialize
+document.addEventListener('DOMContentLoaded', function() {
+  renderCart();
+  updateSummary();
+});
+</script>
 
 {% endblock %}
