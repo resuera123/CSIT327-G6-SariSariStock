@@ -9,6 +9,10 @@ from django.utils import timezone
 from django.contrib.auth.views import LoginView
 from django.http import JsonResponse
 import json
+from django.db.models import Sum, F
+from django.utils import timezone
+from .models import Sales, salesItems, Products
+from datetime import date, timedelta
 
 class CustomLoginView(LoginView):
     template_name = 'registration/login.html'
@@ -21,7 +25,94 @@ class CustomLoginView(LoginView):
 # Create your views here.
 @login_required(login_url='/login/')
 def home(request):
-    return render(request, 'main/home.html')
+    today = timezone.localdate()
+
+    # --- Today's Total Sales ---
+    todays_sales = (
+        Sales.objects.filter(date_added__date=today)
+        .aggregate(total=Sum('grand_total'))['total'] or 0
+    )
+
+    # --- Gross Profit (Today) ---
+    gross_profit = (
+        salesItems.objects.filter(sales_id__date_added__date=today)
+        .annotate(
+            profit_per_item=(F('price') - F('product_id__cost')) * F('qty')
+        )
+        .aggregate(total_profit=Sum('profit_per_item'))['total_profit'] or 0
+    )
+
+    # --- Low Stock Items (1–9 units) ---
+    low_stock_products = Products.objects.filter(
+        user=request.user,
+        quantity__lt=10,
+        quantity__gt=0,
+        status='active'
+    )
+
+    # Count of low stock items
+    low_stock_count = low_stock_products.count()
+
+    # --- Inventory Value ---
+    inventory_value = Products.objects.filter(user=request.user, status='active').aggregate(
+        total=Sum(F('cost') * F('quantity'))
+    )['total'] or 0
+
+    # --- Top Seller (Today) ---
+    top_seller = salesItems.objects.filter(
+        sales_id__date_added__date=today
+    ).values('product_id__name').annotate(
+        total_sold=Sum('qty')
+    ).order_by('-total_sold').first()
+    top_seller_name = top_seller['product_id__name'] if top_seller else "No sales today"
+
+    # --- Out of Stock (quantity == 0) ---
+    out_of_stock_count = Products.objects.filter(user=request.user, quantity=0, status='active').count()
+
+    # --- Sales Revenue for last 7 days ---
+    sales_labels_7days, sales_values_7days = [], []
+    for i in range(6, -1, -1):
+        day = today - timedelta(days=i)
+        total_sales = Sales.objects.filter(date_added__date=day).aggregate(total=Sum('grand_total'))['total'] or 0
+        sales_labels_7days.append(day.strftime("%b %d"))
+        sales_values_7days.append(total_sales)
+    
+    # Last 1 month (30 days)
+    sales_labels_1month, sales_values_1month = [], []
+    for i in range(29, -1, -1):
+        day = today - timedelta(days=i)
+        total_sales = Sales.objects.filter(date_added__date=day).aggregate(total=Sum('grand_total'))['total'] or 0
+        sales_labels_1month.append(day.strftime("%b %d"))
+        sales_values_1month.append(total_sales)
+
+    # Last 1 year (monthly)
+    sales_labels_1year, sales_values_1year = [], []
+    for i in range(11, -1, -1):
+        month = today.month - i
+        year = today.year
+        if month <= 0:
+            month += 12
+            year -= 1
+        total_sales = Sales.objects.filter(date_added__year=year, date_added__month=month).aggregate(total=Sum('grand_total'))['total'] or 0
+        sales_labels_1year.append(f"{year}-{month:02d}")
+        sales_values_1year.append(total_sales)
+
+    context = {
+        'todays_sales': todays_sales,
+        'gross_profit': gross_profit,
+        'low_stock_count': low_stock_count,
+        'low_stock_products': low_stock_products,
+        'inventory_value': inventory_value,
+        'top_seller_name': top_seller_name,
+        'out_of_stock_count': out_of_stock_count,
+        'sales_labels_7days': sales_labels_7days,
+        'sales_values_7days': sales_values_7days,
+        'sales_labels_1month': sales_labels_1month,
+        'sales_values_1month': sales_values_1month,
+        'sales_labels_1year': sales_labels_1year,
+        'sales_values_1year': sales_values_1year,  
+    }
+    return render(request, 'main/home.html', context)
 
 def sign_up(request):
 
@@ -190,53 +281,62 @@ def checkout_pos(request):
             if not cart_items:
                 return JsonResponse({'success': False, 'error': 'Cart is empty'})
             
-            # Calculate total
+            # --- Calculate total ---
             total = 0
-            
-            # Validate stock
             for item in cart_items:
                 product = Products.objects.get(id=item['id'], user=request.user)
-                
-                # Check if enough stock
                 if product.quantity < item['quantity']:
                     return JsonResponse({
                         'success': False, 
                         'error': f'Insufficient stock for {product.name}'
                     })
-                
                 total += product.price * item['quantity']
             
-            # Check if cash received is sufficient
+            # --- Check cash ---
             if cash_received < total:
                 return JsonResponse({'success': False, 'error': 'Insufficient cash received'})
             
-            # Generate reference code for movement logs
+            # --- Create Sales record ---
             local_time = timezone.localtime(timezone.now())
-            reference_code = f"PS#{local_time.strftime('%H%M%S')}"
+            sale = Sales.objects.create(
+                code=f"SALE#{local_time.strftime('%Y%m%d%H%M%S')}",
+                sub_total=total,
+                grand_total=total,
+                amount_change=cash_received - total
+            )
             
-            # Update product quantities and create movement logs
+            # --- Update products, create MovementLog, create salesItems ---
             for item in cart_items:
                 product = Products.objects.get(id=item['id'], user=request.user)
                 quantity = item['quantity']
                 
-                # Update product quantity
+                # Update product stock
                 product.quantity -= quantity
                 product.save()
                 
-                # Create movement log
+                # Create MovementLog
                 MovementLog.objects.create(
                     product=product,
-                    reference=reference_code,
+                    reference=f"PS#{local_time.strftime('%H%M%S')}",
                     change=-quantity,
-                    note=f"Product Sold"
+                    note="Product Sold"
+                )
+                
+                # Create salesItems
+                salesItems.objects.create(
+                    sales_id=sale,
+                    product_id=product,
+                    price=product.price,
+                    qty=quantity,
+                    total=product.price * quantity
                 )
             
             return JsonResponse({
                 'success': True,
-                'reference': reference_code,
+                'reference': sale.code,
                 'total': total
             })
-            
+        
         except Products.DoesNotExist:
             return JsonResponse({'success': False, 'error': 'Product not found'})
         except Exception as e:

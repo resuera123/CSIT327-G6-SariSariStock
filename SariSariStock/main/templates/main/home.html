@@ -45,6 +45,75 @@
     background: rgb(131, 131, 131);
     border-radius: 10px;
   }
+
+  .debugBorder{
+    border: solid black 1px;
+  }
+
+  .displayBox{
+    width: 250px;
+    margin: 10px;
+    margin-top: 1px;
+    padding: 10px;
+  }
+
+  .reorderTable table, th{
+    border: 1px solid black;
+    text-align: center;
+    width: 500px;
+    color: white;
+  }
+
+  .reorderTable td{
+    border: 1px solid black;
+    text-align: center;
+    width: 500px;
+  }
+
+  .justifyContent{
+    display: flex;
+    justify-content: center;
+  }
+
+  .buttonBox{
+    margin-left: 595.1px;
+  }
+
+  .chartButtonStart{
+    border: solid transparent 1px;
+    border-radius: 5px 0px 0px 5px;
+    transition: all 0.3s ease;
+  }
+  .chartButtonStart:focus{
+    border: solid transparent 1px;
+    border-radius: 5px 0px 0px 5px;
+    background: #212529;
+    color: white;
+  }
+
+
+  .chartButtonMid{
+    border: solid transparent 1px;
+    transition: all 0.3s ease;
+  }
+  .chartButtonMid:focus{
+    border: solid transparent 1px;
+    background: #212529;
+    color: white;
+  }
+
+
+  .chartButtonEnd{
+    border: solid transparent 1px;
+    border-radius: 0px 5px 5px 0px;
+    transition: all 0.3s ease;    
+  }
+  .chartButtonEnd:focus{
+    border: solid transparent 1px;
+    border-radius: 0px 5px 5px 0px;
+    background: #212529;
+    color: white;
+  }
 </style>
 
 <!-- SideBar -->
@@ -53,6 +122,116 @@
   <!-- Main content -->
   <div class="main-content text-dark">
     <h1 class="text-center mb-5">Welcome to the Sari-Sari Stock Management System</h1>
+    <div class="justifyContent">
+      <div class=" displayBox">
+        <h6>Today's Sale</h6>
+        <h3>₱{{todays_sales|floatformat:2|intcomma}}</h3>
+      </div>
+
+      <div class=" displayBox">
+        <h6>Gross Profit (Today)</h6>
+        <h3>₱{{gross_profit|floatformat:2|intcomma}}</h3>
+      </div>
+
+      <div class=" displayBox">
+        <h6>Low Stock Items</h6>
+        <h3>{{low_stock_count}}</h3>
+      </div>
+    </div>
+
+    <div class="justifyContent">
+      <div class=" displayBox">
+        <h6>Inventory Value</h6>
+        <h3>₱{{ inventory_value|floatformat:2|intcomma }}</h3>
+      </div>
+
+      <div class=" displayBox">
+        <h6>Top Seller (Today)</h6>
+        <h3>{{ top_seller_name }}</h3>
+      </div>
+
+      <div class=" displayBox">
+        <h6>Out of Stock</h6>
+        <h3>{{ out_of_stock_count }}</h3>
+      </div>
+    </div>
+
+    <h3>Low Stock Watchlist</h3>
+    <table class="reorderTable table table-bordered table-striped align-middle table-striped-columns border border-dark" border="1">
+        <thead class="table-dark">
+            <tr>
+                <th>SKU</th>
+                <th>Name</th>
+                <th>On Hand</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for product in low_stock_products %}
+            <tr>
+                <td>{{ product.code }}</td>
+                <td>{{ product.name }}</td>
+                <td style="color: red; font-weight: bold;">{{ product.quantity }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="3">No low stock items</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table> 
+    <div class="d-flex">
+      <h3>Sales Revenue</h3>
+      <div class="d-flex justify-content-end buttonBox" >
+        <button class="chartButtonStart" onclick="updateChart('7days')">Last Week</button>
+        <button class="chartButtonMid" onclick="updateChart('1month')">Last Month</button>
+        <button class="chartButtonEnd" onclick="updateChart('1year')">Last Year</button>
+      </div>
+      
+    </div>    
+    <canvas id="salesChart" width="600" height="300"></canvas>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+      const ctx = document.getElementById('salesChart').getContext('2d');
+
+      const data7days = {{ sales_values_7days|safe }};
+      const labels7days = {{ sales_labels_7days|safe }};
+      const data1month = {{ sales_values_1month|safe }};
+      const labels1month = {{ sales_labels_1month|safe }};
+      const data1year = {{ sales_values_1year|safe }};
+      const labels1year = {{ sales_labels_1year|safe }};
+
+      let salesChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels7days,
+          datasets: [{
+            label: 'Sales Revenue (₱)',
+            data: data7days,
+            backgroundColor: 'rgba(54, 162, 235, 0.2)',
+            borderColor: 'rgba(54, 162, 235, 1)',
+            borderWidth: 2,
+            tension: 0.3,
+            fill: true,
+          }]
+        },
+        options: { scales: { y: { beginAtZero: true } } }
+      });
+
+      function updateChart(period) {
+        if (period === '7days') {
+          salesChart.data.labels = labels7days;
+          salesChart.data.datasets[0].data = data7days;
+        } else if (period === '1month') {
+          salesChart.data.labels = labels1month;
+          salesChart.data.datasets[0].data = data1month;
+        } else if (period === '1year') {
+          salesChart.data.labels = labels1year;
+          salesChart.data.datasets[0].data = data1year;
+        }
+        salesChart.update();
+      }
+    </script>
 
     <footer class="bg-white text-dark text-center border-top mt-5 py-3">
       &copy; 2025 Group8 SariSariStock. All rights reserved.
