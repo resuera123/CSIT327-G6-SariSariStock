@@ -50,11 +50,57 @@
     border: solid black 1px;
   }
 
-  .displayBox{
-    width: 250px;
+  .displayBox {
+    width: 100%;
+    height: 125px;
+    padding: 20px;
+    border-radius: 12px;
+    background: #ffffff;
+    box-shadow: 0px 3px 8px rgba(0, 0, 0, 0.1);
     margin: 10px;
-    margin-top: 1px;
-    padding: 10px;
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    justify-content: right;
+  }
+
+  .displayBox h6 {
+    font-weight: 600;
+    color: #555;
+    margin-bottom: 8px;
+  }
+
+  .displayBox h3 {
+    font-size: 26px;
+    font-weight: 700;
+    color: #111;
+    margin: 0;
+  }
+
+  .displayBox2 {
+    width: 98.6%;
+    padding: 20px;
+    border-radius: 12px;
+    background: #ffffff;
+    box-shadow: 0px 3px 8px rgba(0, 0, 0, 0.1);
+    margin: 10px;
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    justify-content: right;
+  }
+
+  .displayBox2 h6 {
+    font-weight: 600;
+    color: #555;
+    margin-bottom: 8px;
+  }
+
+  .displayBox2 h3 {
+    font-size: 26px;
+    font-weight: 700;
+    color: #111;
+    margin: 0;
   }
 
   .reorderTable table, th{
@@ -72,47 +118,63 @@
 
   .justifyContent{
     display: flex;
-    justify-content: center;
+    justify-content: space-between;
+    width: 100%;
   }
 
   .buttonBox{
     margin-left: 595.1px;
   }
-
+  
   .chartButtonStart{
+    height: 35px;
     border: solid transparent 1px;
     border-radius: 5px 0px 0px 5px;
     transition: all 0.3s ease;
   }
   .chartButtonStart:focus{
+    height: 35px;
     border: solid transparent 1px;
     border-radius: 5px 0px 0px 5px;
     background: #212529;
     color: white;
   }
 
-
   .chartButtonMid{
+    height: 35px;
     border: solid transparent 1px;
     transition: all 0.3s ease;
   }
   .chartButtonMid:focus{
+    height: 35px;
     border: solid transparent 1px;
     background: #212529;
     color: white;
   }
 
-
   .chartButtonEnd{
+    height: 35px;
     border: solid transparent 1px;
     border-radius: 0px 5px 5px 0px;
     transition: all 0.3s ease;    
   }
   .chartButtonEnd:focus{
+    height: 35px;
     border: solid transparent 1px;
     border-radius: 0px 5px 5px 0px;
     background: #212529;
     color: white;
+  }
+
+  button.chartButtonStart,
+  button.chartButtonMid,
+  button.chartButtonEnd {
+      padding: 0px 10px;
+      margin: 0; /* remove default spacing */
+  }
+
+  div.buttonGroup { 
+      display: flex; 
   }
 </style>
 
@@ -121,74 +183,76 @@
 
   <!-- Main content -->
   <div class="main-content text-dark">
-    <h1 class="text-center mb-5">Welcome to the Sari-Sari Stock Management System</h1>
     <div class="justifyContent">
-      <div class=" displayBox">
+      <div class="card displayBox">
         <h6>Today's Sale</h6>
         <h3>₱{{todays_sales|floatformat:2|intcomma}}</h3>
       </div>
 
-      <div class=" displayBox">
+      <div class="card displayBox">
         <h6>Gross Profit (Today)</h6>
         <h3>₱{{gross_profit|floatformat:2|intcomma}}</h3>
       </div>
 
-      <div class=" displayBox">
+      <div class="card displayBox">
         <h6>Low Stock Items</h6>
         <h3>{{low_stock_count}}</h3>
       </div>
     </div>
 
     <div class="justifyContent">
-      <div class=" displayBox">
+      <div class="card displayBox">
         <h6>Inventory Value</h6>
         <h3>₱{{ inventory_value|floatformat:2|intcomma }}</h3>
       </div>
 
-      <div class=" displayBox">
+      <div class="card displayBox">
         <h6>Top Seller (Today)</h6>
         <h3>{{ top_seller_name }}</h3>
       </div>
 
-      <div class=" displayBox">
+      <div class="card displayBox">
         <h6>Out of Stock</h6>
         <h3>{{ out_of_stock_count }}</h3>
       </div>
     </div>
 
-    <h3>Low Stock Watchlist</h3>
-    <table class="reorderTable table table-bordered table-striped align-middle table-striped-columns border border-dark" border="1">
-        <thead class="table-dark">
-            <tr>
-                <th>SKU</th>
-                <th>Name</th>
-                <th>On Hand</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for product in low_stock_products %}
-            <tr>
-                <td>{{ product.code }}</td>
-                <td>{{ product.name }}</td>
-                <td style="color: red; font-weight: bold;">{{ product.quantity }}</td>
-            </tr>
-            {% empty %}
-            <tr>
-                <td colspan="3">No low stock items</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table> 
-    <div class="d-flex">
-      <h3>Sales Revenue</h3>
-      <div class="d-flex justify-content-end buttonBox" >
-        <button class="chartButtonStart" onclick="updateChart('7days')">Last Week</button>
-        <button class="chartButtonMid" onclick="updateChart('1month')">Last Month</button>
-        <button class="chartButtonEnd" onclick="updateChart('1year')">Last Year</button>
-      </div>
-      
-    </div>    
-    <canvas id="salesChart" width="600" height="300"></canvas>
+    <div class="card displayBox2 mb-4">
+      <h3 class="mb-2">Low Stock Watchlist</h3>
+      <table class="reorderTable table table-bordered table-striped align-middle table-striped-columns border border-dark" border="1">
+          <thead class="table-dark">
+              <tr>
+                  <th>SKU</th>
+                  <th>Name</th>
+                  <th>On Hand</th>
+              </tr>
+          </thead>
+          <tbody>
+              {% for product in low_stock_products %}
+              <tr>
+                  <td>{{ product.code }}</td>
+                  <td>{{ product.name }}</td>
+                  <td style="color: red; font-weight: bold;">{{ product.quantity }}</td>
+              </tr>
+              {% empty %}
+              <tr>
+                  <td colspan="3">No low stock items</td>
+              </tr>
+              {% endfor %}
+          </tbody>
+      </table> 
+    </div>
+    <div class="card displayBox2">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3>Sales Revenue</h3>
+        <div class="buttonGroup">
+          <button class="chartButtonStart" onclick="updateChart('7days')">Last Week</button>
+          <button class="chartButtonMid" onclick="updateChart('1month')">Last Month</button>
+          <button class="chartButtonEnd" onclick="updateChart('1year')">Last Year</button>
+        </div>
+      </div>   
+      <canvas id="salesChart" width="600" height="300"></canvas>
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
@@ -215,7 +279,23 @@
             fill: true,
           }]
         },
-        options: { scales: { y: { beginAtZero: true } } }
+        options: { 
+          scales: { 
+            y: { 
+              beginAtZero: true,
+              ticks: {
+                callback: function(value) {
+                  return '₱' + value.toLocaleString();
+                }
+              }
+            } 
+          },
+          plugins: {
+            legend: {
+              display: false
+            }
+          }
+        }
       });
 
       function updateChart(period) {

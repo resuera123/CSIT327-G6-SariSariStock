@@ -4,12 +4,11 @@ from .forms import RegisterForm, ProductForm
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import login, logout, authenticate
 from .models import Products, MovementLog
-from django.db.models import Q
+from django.db.models import Q, Sum, F
 from django.utils import timezone
 from django.contrib.auth.views import LoginView
 from django.http import JsonResponse
 import json
-from django.db.models import Sum, F
 from django.utils import timezone
 from .models import Sales, salesItems, Products
 from datetime import date, timedelta
@@ -22,20 +21,25 @@ class CustomLoginView(LoginView):
             return redirect('/home')
         return super().dispatch(request, *args, **kwargs)
 
-# Create your views here.
 @login_required(login_url='/login/')
 def home(request):
     today = timezone.localdate()
 
     # --- Today's Total Sales ---
     todays_sales = (
-        Sales.objects.filter(date_added__date=today)
+        Sales.objects.filter(
+            salesitems__product_id__user=request.user,
+            date_added__date=today
+        )
         .aggregate(total=Sum('grand_total'))['total'] or 0
     )
 
     # --- Gross Profit (Today) ---
     gross_profit = (
-        salesItems.objects.filter(sales_id__date_added__date=today)
+        salesItems.objects.filter(
+            product_id__user=request.user,
+            sales_id__date_added__date=today
+        )
         .annotate(
             profit_per_item=(F('price') - F('product_id__cost')) * F('qty')
         )
@@ -60,6 +64,7 @@ def home(request):
 
     # --- Top Seller (Today) ---
     top_seller = salesItems.objects.filter(
+        product_id__user=request.user,
         sales_id__date_added__date=today
     ).values('product_id__name').annotate(
         total_sold=Sum('qty')
@@ -73,7 +78,7 @@ def home(request):
     sales_labels_7days, sales_values_7days = [], []
     for i in range(6, -1, -1):
         day = today - timedelta(days=i)
-        total_sales = Sales.objects.filter(date_added__date=day).aggregate(total=Sum('grand_total'))['total'] or 0
+        total_sales = Sales.objects.filter(salesitems__product_id__user=request.user, date_added__date=day).aggregate(total=Sum('grand_total'))['total'] or 0
         sales_labels_7days.append(day.strftime("%b %d"))
         sales_values_7days.append(total_sales)
     
@@ -81,7 +86,7 @@ def home(request):
     sales_labels_1month, sales_values_1month = [], []
     for i in range(29, -1, -1):
         day = today - timedelta(days=i)
-        total_sales = Sales.objects.filter(date_added__date=day).aggregate(total=Sum('grand_total'))['total'] or 0
+        total_sales = Sales.objects.filter(salesitems__product_id__user=request.user, date_added__date=day).aggregate(total=Sum('grand_total'))['total'] or 0
         sales_labels_1month.append(day.strftime("%b %d"))
         sales_values_1month.append(total_sales)
 
@@ -93,7 +98,7 @@ def home(request):
         if month <= 0:
             month += 12
             year -= 1
-        total_sales = Sales.objects.filter(date_added__year=year, date_added__month=month).aggregate(total=Sum('grand_total'))['total'] or 0
+        total_sales = Sales.objects.filter(salesitems__product_id__user=request.user, date_added__year=year, date_added__month=month).aggregate(total=Sum('grand_total'))['total'] or 0
         sales_labels_1year.append(f"{year}-{month:02d}")
         sales_values_1year.append(total_sales)
 
