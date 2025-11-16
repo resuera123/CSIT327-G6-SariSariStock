@@ -122,4 +122,16 @@
         </form>
     </div>
 </div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+      const form = document.querySelector("form");
+      const submitBtn = form.querySelector("button[type='submit']");
+
+      form.addEventListener("submit", function () {
+          submitBtn.disabled = true;
+          submitBtn.innerText = "Saving...";
+      });
+  });
+</script>
 {% endblock %}
