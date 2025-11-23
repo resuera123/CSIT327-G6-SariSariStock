@@ -42,3 +42,9 @@ class ProductForm(forms.ModelForm):
                 'disabled': True,
                 'class': 'form-control text-muted',
             })
+            self.fields['quantity'].required = False
+
+    def clean_quantity(self):
+        if self.instance and self.instance.pk:
+            return self.instance.quantity  # Keep old value
+        return self.cleaned_data['quantity']

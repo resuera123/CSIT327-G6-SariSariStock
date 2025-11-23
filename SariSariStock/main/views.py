@@ -203,6 +203,15 @@ def delete_product(request, product_id):
 
     return render(request, 'productCatalog/delete_product.html', {'product': product})
 
+def archive_product(request, product_id):
+    product = get_object_or_404(Products, id=product_id, user=request.user)
+    
+    # Update status to archive
+    product.status = "archive"
+    product.save()
+    
+    return redirect('/products')
+
 @login_required(login_url='/login/')
 def inventory(request):
 

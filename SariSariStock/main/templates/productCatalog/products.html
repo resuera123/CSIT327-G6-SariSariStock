@@ -209,16 +209,50 @@
                               </td>
                               <td class="text-center">{{ product.date_added|date:"M d, Y" }}</td>
                               <td class="d-flex flex-column align-items-center gap-2">
-                                  <button type="button" class="btn btn-sm btn-primary" style="width: 82px;" data-bs-toggle="modal" data-bs-target="#viewProductModal{{ product.id }}">
+                                  <button type="button" class="btn btn-sm btn-primary" style="width: 90px;" data-bs-toggle="modal" data-bs-target="#viewProductModal{{ product.id }}">
                                     <i class="bi bi-eye"></i> View
                                   </button>
-                                  <a href="{% url 'edit_product' product.id %}" class="btn btn-sm btn-warning" style="width: 82px; color: #fff;"><i class="bi bi-pencil-square"></i> Edit</a>
-                                  <button type="button" class="btn btn-sm btn-danger" style="width: 82px;" data-bs-toggle="modal" data-bs-target="#deleteProductModal{{ product.id }}">
-                                      <i class="bi bi-trash"></i> Delete
-                                  </button>
+                                  <a href="{% url 'edit_product' product.id %}" class="btn btn-sm btn-warning" style="width: 90px; color: #fff;"><i class="bi bi-pencil-square"></i> Edit</a>
+                                  {% if status_filter == "active" %}
+                                      <button type="button" class="btn btn-sm btn-danger" style="width: 90px;"
+                                              data-bs-toggle="modal" data-bs-target="#archiveProductModal{{ product.id }}">
+                                          <i class="bi bi-archive"></i> Archive
+                                      </button>
+                                  {% else %}
+                                      <button type="button" class="btn btn-sm btn-danger" style="width: 90px;"
+                                              data-bs-toggle="modal" data-bs-target="#deleteProductModal{{ product.id }}">
+                                          <i class="bi bi-trash"></i> Delete
+                                      </button>
+                                  {% endif %}
                               </td>
                           </tr>
 
+                          <div class="modal fade" id="archiveProductModal{{ product.id }}" tabindex="-1">
+                              <div class="modal-dialog modal-dialog-centered">
+                                  <div class="modal-content border-0 shadow-sm">
+                                      <div class="modal-header bg-danger text-white">
+                                          <h5 class="modal-title">
+                                              <i class="bi bi-archive"></i> Archive Product
+                                          </h5>
+                                      </div>
+                                      <div class="modal-body">
+                                          <p>Are you sure you want to archive <strong>{{ product.name }}</strong>?</p>
+                                      </div>
+                                      <div class="modal-footer">
+                                          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+
+                                          <form action="{% url 'archive_product' product.id %}" method="POST">
+                                              {% csrf_token %}
+                                              <button type="submit" class="btn btn-danger text-white">
+                                                  <i class="bi bi-archive-fill"></i> Archive
+                                              </button>
+                                          </form>
+                                      </div>
+                                  </div>
+                              </div>
+                          </div>
+
+                          
                           <div class="modal fade" id="deleteProductModal{{ product.id }}" tabindex="-1" aria-labelledby="deleteProductModalLabel{{ product.id }}" aria-hidden="true">
                             <div class="modal-dialog modal-dialog-centered">
                               <div class="modal-content border-0 shadow-sm">
