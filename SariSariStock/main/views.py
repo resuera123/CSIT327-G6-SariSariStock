@@ -72,7 +72,7 @@ def home(request):
     top_seller_name = top_seller['product_id__name'] if top_seller else "No sales today"
 
     # --- Out of Stock (quantity == 0) ---
-    out_of_stock_count = Products.objects.filter(user=request.user, quantity=0, status='active').count()
+    out_of_stock_count = Products.objects.filter(user=request.user, quantity=0).count()
 
     # --- Sales Revenue for last 7 days ---
     sales_labels_7days, sales_values_7days = [], []
@@ -141,31 +141,32 @@ def LogOut(request):
 
 @login_required(login_url='/login/')
 def products(request):
-    query = request.GET.get('q')
+    # Auto-archive any active products that have quantity <= 0
+    Products.objects.filter(user=request.user, quantity__lte=0, status='active').update(status='archive')
+
+    query = request.GET.get('q', '').strip()
     selected_category = request.GET.get('category', 'all')
     status_filter = request.GET.get('status', 'active')
 
-    products = Products.objects.filter(user=request.user)
-    categories = Products.CATEGORY_CHOICES
-    status = Products.STATUS_CHOICES
+    qs = Products.objects.filter(user=request.user)
+
+    if status_filter in ['active', 'archive']:
+        qs = qs.filter(status=status_filter)
+
+    if selected_category and selected_category != 'all':
+        qs = qs.filter(categories=selected_category)
 
     if query:
-        products = products.filter(Q(name__icontains=query) | Q(code__icontains=query))
+        qs = qs.filter(Q(name__icontains=query) | Q(code__icontains=query))
 
-    if selected_category != 'all' and selected_category:
-        products = products.filter(categories=selected_category)
-
-    if status_filter:
-        products = products.filter(status=status_filter)
-
-    return render(request, 'productCatalog/products.html', {
-        'products': products,
-        'categories': categories,
-        'status': status,
+    context = {
+        'products': qs.order_by('-date_added'),
+        'categories': Products.CATEGORY_CHOICES,
+        'selected_category': selected_category,
         'status_filter': status_filter,
         'query': query,
-        'selected_category': selected_category,
-    })
+    }
+    return render(request, 'productCatalog/products.html', context)
 
 def add_product(request):
     if request.method == 'POST':
@@ -227,43 +228,58 @@ def inventory(request):
 
 @login_required(login_url='/login/')
 def add_stock(request, product_id):
-    product = get_object_or_404(Products, id=product_id)
+    product = get_object_or_404(Products, id=product_id, user=request.user)
     if request.method == 'POST':
-        qty = int(request.POST.get('quantity'))
+        qty = int(request.POST.get('quantity', 0))
         note = request.POST.get('note', '')
 
+        quantity_before = product.quantity
         product.quantity += qty
+        # If stock goes above zero, ensure status is active
+        if product.quantity > 0 and product.status != 'active':
+            product.status = 'active'
         product.save()
 
         local_time = timezone.localtime(timezone.now())
 
         MovementLog.objects.create(
             product=product,
-            reference=f"AS#{local_time.strftime('%H%M%S')}",
+            reference=f"AS#{local_time.strftime('%Y%m%d%H%M%S')}",
+            quantity_before=quantity_before,
             change=qty,
+            quantity_after=product.quantity,
             note=note
         )
 
-    return redirect('/inventory') 
+    return redirect('/inventory')
 
 def reduce_stock(request, product_id):
-    product = get_object_or_404(Products, id=product_id)
+    product = get_object_or_404(Products, id=product_id, user=request.user)
     if request.method == 'POST':
-        qty = int(request.POST.get('quantity'))
+        qty = int(request.POST.get('quantity', 0))
         note = request.POST.get('note', '')
 
-        if qty > product.quantity:
-            qty = product.quantity  # prevent negative stock
+        quantity_before = product.quantity
 
-        product.quantity -= qty
+        # Prevent negative stock
+        actual_removed = min(qty, product.quantity)
+        product.quantity -= actual_removed
+
+        # If quantity reaches 0, archive the product
+        if product.quantity <= 0:
+            product.quantity = 0
+            product.status = 'archive'
+
         product.save()
 
         local_time = timezone.localtime(timezone.now())
 
         MovementLog.objects.create(
             product=product,
-            reference=f"RS#{local_time.strftime('%H%M%S')}",
-            change=-qty,
+            reference=f"RS#{local_time.strftime('%Y%m%d%H%M%S')}",
+            quantity_before=quantity_before,
+            change=-actual_removed,
+            quantity_after=product.quantity,
             note=note
         )
 
@@ -291,26 +307,21 @@ def checkout_pos(request):
             data = json.loads(request.body)
             cart_items = data.get('cart', [])
             cash_received = float(data.get('cash_received', 0))
-            
+
             if not cart_items:
                 return JsonResponse({'success': False, 'error': 'Cart is empty'})
-            
-            # --- Calculate total ---
+
             total = 0
+            # Validate stock
             for item in cart_items:
                 product = Products.objects.get(id=item['id'], user=request.user)
                 if product.quantity < item['quantity']:
-                    return JsonResponse({
-                        'success': False, 
-                        'error': f'Insufficient stock for {product.name}'
-                    })
+                    return JsonResponse({'success': False, 'error': f'Insufficient stock for {product.name}'})
                 total += product.price * item['quantity']
-            
-            # --- Check cash ---
+
             if cash_received < total:
                 return JsonResponse({'success': False, 'error': 'Insufficient cash received'})
-            
-            # --- Create Sales record ---
+
             local_time = timezone.localtime(timezone.now())
             sale = Sales.objects.create(
                 code=f"SALE#{local_time.strftime('%Y%m%d%H%M%S')}",
@@ -318,25 +329,27 @@ def checkout_pos(request):
                 grand_total=total,
                 amount_change=cash_received - total
             )
-            
-            # --- Update products, create MovementLog, create salesItems ---
+
             for item in cart_items:
                 product = Products.objects.get(id=item['id'], user=request.user)
-                quantity = item['quantity']
-                
-                # Update product stock
+                quantity = int(item['quantity'])
+                quantity_before = product.quantity
+
                 product.quantity -= quantity
+                if product.quantity <= 0:
+                    product.quantity = 0
+                    product.status = 'archive'
                 product.save()
-                
-                # Create MovementLog
+
                 MovementLog.objects.create(
                     product=product,
-                    reference=f"PS#{local_time.strftime('%H%M%S')}",
+                    reference=f"PS#{local_time.strftime('%Y%m%d%H%M%S')}",
+                    quantity_before=quantity_before,
                     change=-quantity,
+                    quantity_after=product.quantity,
                     note="Product Sold"
                 )
-                
-                # Create salesItems
+
                 salesItems.objects.create(
                     sales_id=sale,
                     product_id=product,
@@ -344,18 +357,14 @@ def checkout_pos(request):
                     qty=quantity,
                     total=product.price * quantity
                 )
-            
-            return JsonResponse({
-                'success': True,
-                'reference': sale.code,
-                'total': total
-            })
-        
+
+            return JsonResponse({'success': True, 'reference': sale.code, 'total': total})
+
         except Products.DoesNotExist:
             return JsonResponse({'success': False, 'error': 'Product not found'})
         except Exception as e:
             return JsonResponse({'success': False, 'error': str(e)})
-    
+
     return JsonResponse({'success': False, 'error': 'Invalid request method'})
 
 

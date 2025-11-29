@@ -150,12 +150,12 @@
   <div class="main-content text-dark">
     <div class="d-flex flex-column mb-3">
       <h3 class="mb-0">Inventory</h3>
-      <span class="text-muted">View in-stock items, record stock-in, and adjust stock. All movements are logged.</span>
+      <span class="text-muted">View stock items, record stock-in/out, and adjust(add, reduce) stock. All movements are logged.</span>
     </div>
 
     
     <div class="d-flex gap-3 mb-4">
-        <a href="#instock-section" class="toggle-link active">In-Stock</a>
+        <a href="#instock-section" class="toggle-link active">Stock</a>
         <a href="#movement-section" class="toggle-link">Movement Log</a>
     </div>
 
@@ -176,10 +176,14 @@
             </thead>
             <tbody>
                 {% for product in products %}
-                    {% if product.id and product.status == 'active' %}
+                    {% if product.id%}
                     <tr>
                         <td>{{ product.code }}</td>
+                        {% if product.status == 'active'%}
                         <td>{{ product.name }}</td>
+                        {% elif product.status == 'archive'%}
+                        <td class="text-danger">{{ product.name }}</td>
+                        {% endif %}
                         <td>{{ product.get_categories_display }}</td>
                         <td class="text-center">
                                 {% if product.quantity == 0 %}
@@ -295,28 +299,36 @@
                     <th>Reference</th>
                     <th>SKU</th>
                     <th>Product Name</th>
-                    <th>Quantity Change</th>
+                    <th>Quantity</th>
+                    <th>Changes</th>
+                    <th>Current Quantity</th>
                     <th>Note</th>
                 </tr>
             </thead>
             <tbody>
                 {% for log in movement_logs %}
                 <tr>
-                    <td>{{ log.date|date:"M d, Y" }}</td>
+                    <td>{{ log.date|date:"M d, Y " }}</td>
                     <td>{{ log.reference }}</td>
                     <td>{{ log.product.code }}</td>
                     <td>{{ log.product.name }}</td>
                     <td>
+                        <span class="text-secondary fw-bold">{{ log.quantity_before }}</span>
+                    </td>
+                    <td>
                         {% if log.change > 0 %}
-                            <span class="text-success">+{{ log.change }}</span>
+                            <span class="text-success fw-bold">+{{ log.change }}</span>
                         {% else %}
-                            <span class="text-danger">{{ log.change }}</span>
+                            <span class="text-danger fw-bold">{{ log.change }}</span>
                         {% endif %}
+                    </td>
+                    <td>
+                        <span class="text-primary fw-bold">{{ log.quantity_after }}</span>
                     </td>
                     <td>{{ log.note|default:"—" }}</td>
                 </tr>
                 {% empty %}
-                    <tr><td colspan="5">No movement logs yet.</td></tr>
+                    <tr><td colspan="8">No movement logs yet.</td></tr>
                 {% endfor %}
             </tbody>
         </table>

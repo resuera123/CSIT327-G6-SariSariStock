@@ -39,7 +39,9 @@ class MovementLog(models.Model):
     product = models.ForeignKey(Products, on_delete=models.CASCADE, related_name='movement_logs')
     reference = models.CharField(max_length=100)
     date = models.DateTimeField(default=timezone.now)
+    quantity_before = models.IntegerField(default=0)
     change = models.IntegerField()
+    quantity_after = models.IntegerField(default=0)
     note = models.TextField(blank=True, null=True)
 
     class Meta:
