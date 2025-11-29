@@ -245,7 +245,7 @@ def add_stock(request, product_id):
 
         MovementLog.objects.create(
             product=product,
-            reference=f"AS#{local_time.strftime('%Y%m%d%H%M%S')}",
+            reference=f"AS#{local_time.strftime('%H%M%S')}",
             quantity_before=quantity_before,
             change=qty,
             quantity_after=product.quantity,
@@ -277,7 +277,7 @@ def reduce_stock(request, product_id):
 
         MovementLog.objects.create(
             product=product,
-            reference=f"RS#{local_time.strftime('%Y%m%d%H%M%S')}",
+            reference=f"RS#{local_time.strftime('%H%M%S')}",
             quantity_before=quantity_before,
             change=-actual_removed,
             quantity_after=product.quantity,
