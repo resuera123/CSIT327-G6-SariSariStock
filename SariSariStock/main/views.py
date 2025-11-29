@@ -12,6 +12,7 @@ import json
 from django.utils import timezone
 from .models import Sales, salesItems, Products
 from datetime import date, timedelta
+from django.db import transaction
 
 class CustomLoginView(LoginView):
     template_name = 'registration/login.html'
@@ -311,23 +312,29 @@ def checkout_pos(request):
             if not cart_items:
                 return JsonResponse({'success': False, 'error': 'Cart is empty'})
 
+
+            product_names_list = []
             total = 0
             # Validate stock
             for item in cart_items:
                 product = Products.objects.get(id=item['id'], user=request.user)
+                quantity = int(item['quantity'])
+
                 if product.quantity < item['quantity']:
                     return JsonResponse({'success': False, 'error': f'Insufficient stock for {product.name}'})
                 total += product.price * item['quantity']
-
+                product_names_list.append(f"{product.name} ({quantity}x)")
             if cash_received < total:
                 return JsonResponse({'success': False, 'error': 'Insufficient cash received'})
 
             local_time = timezone.localtime(timezone.now())
             sale = Sales.objects.create(
-                code=f"SALE#{local_time.strftime('%Y%m%d%H%M%S')}",
-                sub_total=total,
+                user=request.user,
+                code=f"PS#{local_time.strftime('%H%M%S')}",
+                sub_total=cash_received,
                 grand_total=total,
-                amount_change=cash_received - total
+                amount_change=cash_received - total,
+                product_names = ", ".join(product_names_list)
             )
 
             for item in cart_items:
@@ -343,7 +350,7 @@ def checkout_pos(request):
 
                 MovementLog.objects.create(
                     product=product,
-                    reference=f"PS#{local_time.strftime('%Y%m%d%H%M%S')}",
+                    reference=f"PS#{local_time.strftime('%H%M%S')}",
                     quantity_before=quantity_before,
                     change=-quantity,
                     quantity_after=product.quantity,
@@ -372,4 +379,58 @@ def checkout_pos(request):
 
 @login_required(login_url='/login/')
 def sales(request):
-    return render(request, 'sales/sales.html')
+
+    sales_list = Sales.objects.filter(user=request.user).order_by('-date_added')
+    return render(request, 'sales/sales.html', {'sales': sales_list})  
+
+@login_required(login_url='/login/') 
+@transaction.atomic
+def void_sale(request, sale_id):
+    # 1. Get the Sale Record, ensuring it belongs to the current user
+    sale = get_object_or_404(Sales, id=sale_id, user=request.user)
+    sale_code = sale.code
+
+    if request.method == 'POST':
+        try:
+            # 2. DELETE the original MovementLog entries for this sale (CRITICAL NEW STEP)
+            # The reference code (e.g., PS#161011) is the same for all sale movements.
+            
+            # 3. Iterate and Restore Product Quantities
+            sale_items = salesItems.objects.filter(sales_id=sale) 
+            
+            for item in sale_items:
+                product = get_object_or_404(Products, id=item.product_id.id)
+                quantity_to_restore = item.qty 
+                
+                # Restore the quantity to the product's stock
+                quantity_before = product.quantity
+                product.quantity += quantity_to_restore
+                
+                # If quantity goes above zero, reactivate the product
+                if product.quantity > 0:
+                    product.status = 'active'
+                    
+                product.save()
+
+                # 4. Log the new movement for the void transaction (Stock In)
+                local_time = timezone.localtime(timezone.now())
+                MovementLog.objects.create(
+                    product=product,
+                    # Use a unique reference to distinguish it from a normal POS or ADD stock
+                    reference=f"VD#{local_time.strftime('%H%M%S')}", 
+                    quantity_before=quantity_before,
+                    change=quantity_to_restore, # Positive change
+                    quantity_after=product.quantity,
+                    note=f"Void of Sale {sale_code}"
+                )
+            
+            # 5. Delete the Sale and all related SaleItems 
+            # (Assuming CASCADE delete is set up on your database/models)
+            sale.delete()
+            
+            messages.success(request, f"Transaction **{sale_code}** successfully voided. Inventory restored and movement logs updated.")
+            
+        except Exception as e:
+            messages.error(request, f"Void failed for transaction #{sale_code}. Error: {str(e)}")
+            
+    return redirect('sales')

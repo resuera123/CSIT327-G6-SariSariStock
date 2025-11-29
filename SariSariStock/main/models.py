@@ -51,11 +51,13 @@ class MovementLog(models.Model):
         return self.product.code + " - " + self.reference
     
 class Sales(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     code = models.CharField(max_length=100)
     sub_total = models.FloatField(default=0)
     grand_total = models.FloatField(default=0)
     amount_change = models.FloatField(default=0)
     date_added = models.DateTimeField(default=timezone.now)
+    product_names = models.TextField(blank=True, null=True)
     date_updated = models.DateTimeField(auto_now=True)
 
     def __str__(self):

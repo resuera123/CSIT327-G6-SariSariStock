@@ -336,6 +336,49 @@
             // Optional: separate controls for movement table
             $('#movementTable_length').appendTo('#movement-controls');  
             movementTable.buttons().container().appendTo('#movement-controls');
+
+            var salesTable = $('#salesTable').DataTable({
+                "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                "ordering": true,
+                "order": [[0, "desc"]],  // Sort by date, newest first
+                dom: 'lBrt<"d-flex justify-content-between align-items-center mt-3"ip>',
+                buttons: [
+                    {
+                        extend: 'excelHtml5',
+                        title: 'SariSariStock Sales Log',
+                        text: '<i class="bi bi-file-earmark-spreadsheet"></i> Export to Excel',
+                        className: 'btn btn-outline-success btn-sm me-2 shadow-sm',
+                        exportOptions: {
+                            columns: ':visible:not(:last-child)' 
+                        }
+                    },
+                    {
+                        extend: 'csvHtml5',
+                        title: 'SariSariStock Sales Log',
+                        text: '<i class="bi bi-filetype-csv"></i> Export to CSV',
+                        className: 'btn btn-outline-primary btn-sm me-2 shadow-sm',
+                        exportOptions: {
+                            columns: ':visible:not(:last-child)' 
+                        }
+                    },
+                    {
+                        extend: 'pdfHtml5',
+                        title: 'SariSariStock Sales Log',
+                        className: 'btn btn-outline-danger btn-sm me-2 shadow-sm',
+                        text: '<i class="bi bi-file-earmark-pdf"></i> Export to PDF',
+                        exportOptions: {
+                            columns: ':visible:not(:last-child)'
+                        }
+                    },
+                ],
+                language: {
+                    lengthMenu: 'Show _MENU_ Transactions',
+                    info: 'Showing _START_ to _END_ of _TOTAL_ Transactions'
+                }
+            });
+
+            $('#salesTable_length').appendTo('#sales-controls');  
+            salesTable.buttons().container().appendTo('#sales-controls');
         });
     </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"  integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script> 

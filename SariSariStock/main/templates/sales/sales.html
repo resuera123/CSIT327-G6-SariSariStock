@@ -45,6 +45,113 @@
     background: rgb(131, 131, 131);
     border-radius: 10px;
   }
+
+  /* Flex layout for the whole control bar */
+  #sales-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    width: 100%;
+    margin-bottom: 10px;
+  }
+
+  /* Left side: fix "Show 10 Logs" layout */
+  #sales-controls .dataTables_length {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  #sales-controls .dataTables_length label {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin: 0;
+  }
+
+  #sales-controls .dataTables_length select {
+    display: inline-block;
+    width: auto;
+  }
+
+  /* Right side: export buttons inline */
+  #sales-controls .dt-buttons {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+   /* Print styles - receipt design */
+  @media print {
+    body * {
+      visibility: hidden;
+    }
+    .print-receipt, .print-receipt * {
+      visibility: visible;
+    }
+    .print-receipt {
+      position: static;
+      left: auto;
+      top: auto;
+      transform: none;
+      width: 100%;
+      max-width: 210mm;
+      margin: 0;
+      padding: 20mm;
+      font-family: 'Courier New', monospace;
+      font-size: 14pt;
+      background: white;
+    }
+
+    .modal-content {
+        width: 100%;
+        margin: 0;
+        box-shadow: none; /* Remove box shadow in print */
+    }
+
+    .modal-body {
+        background: none !important;
+        overflow: visible !important; /* Allow content to flow freely */
+        padding: 0; /* Remove modal body padding if the receipt div has its own */
+    }
+
+    @page {
+        size: auto; /* Allow the page to grow with content */
+        margin: 0; /* Remove print margins */
+    }
+
+    .modal-header, .modal-footer, .btn {
+      display: none !important;
+    }
+    .modal-backdrop {
+      display: none !important;
+    }
+    .receipt-header {
+      border-bottom: 3px dashed #000;
+      padding-bottom: 15px;
+      margin-bottom: 15px;
+    }
+    .receipt-title {
+      font-size: 28pt; /* Significantly larger title */
+      margin-bottom: 10px;
+    }
+    .receipt-body p {
+      margin: 10px 0;
+      font-size: 16pt;
+      line-height: 1.6;
+    }
+    .receipt-divider {
+      border-top: 2px dashed #000;
+      margin: 15px 0;
+    }
+    .receipt-footer {
+      border-top: 3px dashed #000;
+      padding-top: 15px;
+      margin-top: 15px;
+      font-size: 14pt;
+    }
+  }
 </style>
 
 <!-- SideBar -->
@@ -52,7 +159,156 @@
 
   <!-- Main content -->
   <div class="main-content text-dark">
-    <h1 class="text-center mb-5">This is the Sales Area</h1>
+    <div class="d-flex flex-column mb-3">
+      <h3 class="mb-0">Sales Transactions</h3>
+      <span class="text-muted">All POS sales. View details, Print Receipt, or Void a transaction.</span>
+    </div>
+
+    <div id="sales-controls" class="d-flex justify-content-between align-items-center mb-2 flex-wrap">
+          
+    </div>
+
+    <table id="salesTable" class="table table-bordered table-striped align-middle table-striped-columns border border-dark text-center">
+            <thead class="table-dark">
+                <tr>
+                    <th>Date</th>
+                    <th>Receipt#</th>
+                    <th>Items</th>
+                    <th>Cash Received</th>
+                    <th>Total</th>
+                    <th>Change</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for sale in sales %}
+                    {% if sale.id%}
+                    <tr>
+                        <td>{{ sale.date_added|date:"M d, Y" }}</td>
+                        <td>{{ sale.code }}</td>
+                        <td class="w-50">{{ sale.product_names }}</td>
+                        <td>₱{{ sale.sub_total|floatformat:2 }}</td>
+                        <td>₱{{ sale.grand_total|floatformat:2 }}</td>
+                        <td>₱{{ sale.amount_change|floatformat:2 }}</td>
+                        <td>
+                          <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#viewSaleModal{{ sale.id }}">
+                              <i class="bi bi-eye"></i> View
+                          </button>
+
+                          <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#voidSaleModal{{ sale.id }}">
+                              <i class="bi bi-trash"></i> Void
+                          </button>
+                        </td>
+                    </tr>
+
+                    <!-- View Sale Modal -->
+                        <div class="modal fade" id="viewSaleModal{{ sale.id }}" tabindex="-1" aria-labelledby="viewSaleLabel{{ sale.id }}" aria-hidden="true">
+                          <div class="modal-dialog modal-lg modal-dialog-centered">
+                            <div class="modal-content border-0 shadow-sm rounded-3">
+                              
+                              <!-- Header -->
+                              <div class="modal-header bg-primary text-white">
+                                <h4 class="modal-title fw-bold" id="viewSaleLabel{{ sale.id }}">
+                                  <i class="bi bi-receipt"></i> Sale Details
+                                </h4>
+                              </div>
+
+                              <!-- Body -->
+                              <div class="modal-body bg-light print-receipt">
+                                <div class="receipt-header">
+                                  <div class="receipt-title" style="text-align: center; font-size: 24pt; font-weight: bold;">SARISARISTOCK</div>
+                                  <div style="text-align: center; margin-bottom: 50px;">Sales Receipt</div>
+                                </div>
+                                
+                                <div class="receipt-body">
+                                  <p><strong>Receipt#:</strong> <span>{{ sale.code }}</span></p>
+                                  <p><strong>Date:</strong> <span>{{ sale.date_added|date:"M d, Y" }}</span></p>
+                                  
+                                  <div class="receipt-divider"></div>
+                                  
+                                  <p><strong>Items:</strong> <span style="white-space: pre-wrap;">{{ sale.product_names }} </span></p>
+                                  
+                                  <div class="receipt-divider"></div>
+                                  
+                                  <p><strong>Cash Received:</strong> <span>₱{{ sale.sub_total|floatformat:2 }}</span></p>
+                                  <p><strong>Grand Total:</strong> <span>₱{{ sale.grand_total|floatformat:2 }}</span></p>
+                                  <p><strong>Cash:</strong> <span>₱{{ sale.sub_total|floatformat:2 }}</span></p>
+                                  <p><strong>Change:</strong> <span>₱{{ sale.amount_change|floatformat:2 }}</span></p>
+                                </div>
+                                
+                                <div class="receipt-footer">
+                                  <p style="margin: 5px 0; text-align: center;">Thank you for your purchase!</p>
+                                  <p style="margin: 5px 0; text-align: center;">Please come again</p>
+                                </div>
+                              </div>
+
+                              <!-- Footer -->
+                              <div class="modal-footer bg-light border-0">
+                                <button type="button" class="btn btn-primary" onclick="window.print()">
+                                  <i class="bi bi-printer"></i> Print
+                                </button>
+                                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">
+                                  Close
+                                </button>
+                              </div>
+
+                            </div>
+                          </div>
+                        </div>
+
+                        <div class="modal fade" id="voidSaleModal{{ sale.id }}" tabindex="-1" aria-labelledby="voidSaleLabel{{ sale.id }}" aria-hidden="true">
+                        <div class="modal-dialog modal-md modal-dialog-centered">
+                            <div class="modal-content border-0 shadow-lg rounded-3">
+
+                                <div class="modal-header bg-danger text-white">
+                                    <h4 class="modal-title fw-bold" id="voidSaleLabel{{ sale.id }}">
+                                        <i class="bi bi-exclamation-triangle-fill"></i> Confirm Void Transaction
+                                    </h4>
+                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+
+                                <div class="modal-body bg-light">
+                                    <form action="{% url 'void-sale' sale.id %}" method="POST" id="voidForm{{ sale.id }}">
+                                        {% csrf_token %}
+                                        <p class="lead">
+                                            Are you sure you want to <strong>VOID</strong> the following transaction?
+                                        </p>
+                                        <div class="alert alert-warning border-0">
+                                            <strong class="text-danger"><i class="bi bi-lightbulb"></i> IMPORTANT:</strong> This action will permanently <strong>delete</strong> the sale record (Receipt #{{ sale.code }}) and add the sold quantities back to the inventory (Stock on Hand). This cannot be undone.
+                                        </div>
+
+                                        <ul class="list-group list-group-flush mb-3">
+                                            <li class="list-group-item bg-light">
+                                                <strong>Receipt #:</strong> {{ sale.code }}
+                                            </li>
+                                            <li class="list-group-item bg-light">
+                                                <strong>Total Amount:</strong> ₱{{ sale.grand_total|floatformat:2 }}
+                                            </li>
+                                            <li class="list-group-item bg-light">
+                                                <strong>Date:</strong> {{ sale.date_added|date:"M d, Y H:i" }}
+                                            </li>
+                                        </ul>
+
+                                        <div class="text-center mt-4">
+                                            <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal">
+                                                Cancel
+                                            </button>
+                                            <button type="submit" class="btn btn-danger">
+                                                <i class="bi bi-trash"></i> Yes, Void Transaction
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+
+                    
+                    {% endif %}
+                {% endfor %}
+              </tbody>
+    </table>
 
     <footer class="bg-white text-dark text-center border-top mt-5 py-3">
       &copy; 2025 Group8 SariSariStock. All rights reserved.
