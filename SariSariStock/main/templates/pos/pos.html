@@ -440,6 +440,68 @@
   </div>
 </div>
 
+<!-- Checkout Confirmation Modal -->
+<div class="modal fade" id="checkoutModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow-sm">
+      <div class="modal-header bg-dark text-white">
+        <h5 class="modal-title">
+          <i class="bi bi-cart-check"></i> Confirm Checkout
+        </h5>
+      </div>
+      <div class="modal-body">
+        <p id="checkoutMessage"></p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-success text-white" id="confirmCheckoutBtn" onclick="proceedCheckout()">
+          <i class="bi bi-check-circle"></i> Confirm
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Success Modal -->
+<div class="modal fade" id="successModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow-sm">
+      <div class="modal-header bg-success text-white">
+        <h5 class="modal-title">
+          <i class="bi bi-check-circle-fill"></i> Sale Completed
+        </h5>
+      </div>
+      <div class="modal-body">
+        <p id="successMessage"></p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-success text-white" data-bs-dismiss="modal" onclick="location.reload()">
+          <i class="bi bi-arrow-repeat"></i> Continue
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Error Modal -->
+<div class="modal fade" id="errorModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow-sm">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title">
+          <i class="bi bi-exclamation-circle"></i> Error
+        </h5>
+      </div>
+      <div class="modal-body">
+        <p id="errorMessage"></p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
 // Cart data structure
 let cart = [];
@@ -599,10 +661,12 @@ document.getElementById('searchInput').addEventListener('input', function(e) {
   document.getElementById('productCount').textContent = visibleCount;
 });
 
-// Checkout function - WITHOUT creating Sales record
+let pendingCheckoutData = null;
+
+// Checkout function - shows confirmation modal
 function checkout() {
   if (cart.length === 0) {
-    alert('Cart is empty');
+    showErrorModal('Cart is empty');
     return;
   }
   
@@ -610,14 +674,35 @@ function checkout() {
   const cashReceived = parseFloat(document.getElementById('cashReceived').value) || 0;
   
   if (cashReceived < total) {
-    alert('Insufficient cash received');
+    showErrorModal('Insufficient cash received');
     return;
   }
   
   const change = cashReceived - total;
-  const confirmation = confirm(`Process sale of ₱${total.toFixed(2)}?\nChange: ₱${change.toFixed(2)}`);
   
-  if (!confirmation) return;
+  // Store data for confirmation
+  pendingCheckoutData = {
+    total: total,
+    cashReceived: cashReceived,
+    change: change
+  };
+  
+  // Show confirmation modal
+  document.getElementById('checkoutMessage').innerHTML = 
+    `<strong>Process sale of ₱${total.toFixed(2)}?</strong><br><br>Cash Received: ₱${cashReceived.toFixed(2)}<br>Change: ₱${change.toFixed(2)}`;
+  
+  const checkoutModal = new bootstrap.Modal(document.getElementById('checkoutModal'));
+  checkoutModal.show();
+}
+
+// Proceed with checkout after confirmation
+function proceedCheckout() {
+  if (!pendingCheckoutData) return;
+  
+  const { total, cashReceived, change } = pendingCheckoutData;
+  
+  // Close confirmation modal
+  bootstrap.Modal.getInstance(document.getElementById('checkoutModal')).hide();
   
   // Disable checkout button
   const checkoutBtn = document.getElementById('checkoutBtn');
@@ -630,7 +715,7 @@ function checkout() {
     quantity: item.quantity
   }));
   
-  // Send to backend to update quantities and create movement logs
+  // Send to backend
   fetch('{% url "checkout_pos" %}', {
     method: 'POST',
     headers: {
@@ -645,28 +730,37 @@ function checkout() {
   .then(response => response.json())
   .then(data => {
     if (data.success) {
-      alert(`Sale completed successfully!\n\nTotal: ₱${total.toFixed(2)}\nChange: ₱${change.toFixed(2)}`);
+      // Show success modal
+      document.getElementById('successMessage').innerHTML = 
+        `<strong>Sale completed successfully!</strong><br><br>Total: ₱${total.toFixed(2)}<br>Change: ₱${change.toFixed(2)}`;
+      
+      const successModal = new bootstrap.Modal(document.getElementById('successModal'));
+      successModal.show();
       
       // Clear cart and reset
       cart = [];
       renderCart();
       updateSummary();
       document.getElementById('cashReceived').value = 0;
-      
-      // Reload page to update product quantities
-      location.reload();
     } else {
-      alert('Error: ' + data.error);
+      showErrorModal('Error: ' + data.error);
       checkoutBtn.disabled = false;
       checkoutBtn.textContent = 'Checkout';
     }
   })
   .catch(error => {
     console.error('Error:', error);
-    alert('An error occurred during checkout');
+    showErrorModal('An error occurred during checkout');
     checkoutBtn.disabled = false;
     checkoutBtn.textContent = 'Checkout';
   });
+}
+
+// Helper function to show error modal
+function showErrorModal(message) {
+  document.getElementById('errorMessage').textContent = message;
+  const errorModal = new bootstrap.Modal(document.getElementById('errorModal'));
+  errorModal.show();
 }
 
 // Initialize
